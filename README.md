@@ -40,11 +40,13 @@
 | **首页** | 提取文件入口 + SVG 验证码 |
 | **管理后台** | 文件浏览、创建分享、分享管理、系统设置 |
 | **分享页** | 树形文件浏览、在线预览、下载、提取码验证 |
-<img width="216" height="480" alt="Screenshot_2026-05-12-11-13-16-384_mark via-edit" src="https://github.com/user-attachments/assets/a04d35d8-bef3-4910-97c3-f30c9715b373" />
-<img width="216" height="480" alt="Screenshot_2026-05-12-11-13-48-178_mark via" src="https://github.com/user-attachments/assets/40c635d7-ca26-4aed-b7f4-b5968e9a438a" />
-<img width="216" height="480" alt="Screenshot_2026-05-12-11-13-55-660_mark via" src="https://github.com/user-attachments/assets/eac93f2b-4258-400d-aab6-a87c46da9542" />
-<img width="216" height="480" alt="Screenshot_2026-05-12-11-14-03-845_mark via-edit" src="https://github.com/user-attachments/assets/544159b7-aaf4-4d3e-8696-50da9956c5c5" />
-<img width="216" height="480" alt="Screenshot_2026-05-12-11-14-17-500_mark via-edit" src="https://github.com/user-attachments/assets/0f6da7d3-0b20-4d60-ab18-100831783b65" />
+<img width="216" height="480" alt="Screenshot_2026-05-12-11-13-16-384_mark via-edit" src="https://github.com/user-attachments/assets/4e499736-ae00-4af5-b76a-9bb022d40811" />
+<img width="216" height="480" alt="Screenshot_2026-05-12-11-13-48-178_mark via" src="https://github.com/user-attachments/assets/d23d5773-f2ef-40cf-9531-10819d5b7179" />
+<img width="216" height="480" alt="Screenshot_2026-05-12-11-13-55-660_mark via" src="https://github.com/user-attachments/assets/0ef3d550-7394-4e23-96d9-dde893a966f5" />
+<img width="216" height="480" alt="Screenshot_2026-05-12-11-14-03-845_mark via-edit" src="https://github.com/user-attachments/assets/6ab9f364-6682-4774-9325-473a688f88b9" />
+<img width="216" height="480" alt="Screenshot_2026-05-12-11-14-17-500_mark via-edit" src="https://github.com/user-attachments/assets/f94081a6-2c64-4f14-a341-a6dac2940b93" />
+<img width="216" height="480" alt="Screenshot_2026-05-12-11-14-38-707_mark via" src="https://github.com/user-attachments/assets/b0fbff7c-97d6-4681-a4c1-b4377f3cb89e" />
+
 
 
 ## 三、📦 快速开始
