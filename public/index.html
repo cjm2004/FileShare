@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>文件分享系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#0d47a1,#1976d2,#42a5f5);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;padding:20px
+}
+.card{
+  background:rgba(255,255,255,0.13);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,0.22);
+  border-radius:24px;
+  padding:36px 32px 24px;
+  max-width:480px;
+  width:100%;
+  text-align:center;
+  box-shadow:0 12px 40px rgba(0,0,0,0.15)
+}
+.logo{font-size:44px;margin-bottom:6px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px;text-shadow:0 2px 10px rgba(0,0,0,0.12)}
+.sub{font-size:13px;opacity:.7;line-height:1.6;margin-bottom:20px}
+
+/* ── Extract Box ── */
+.extract-box{
+  background:rgba(255,255,255,0.08);
+  border-radius:14px;
+  padding:16px;
+}
+.form-group{
+  margin-bottom:10px;
+  text-align:left;
+}
+.form-group:last-child{margin-bottom:0}
+.form-group label{
+  display:block;
+  font-size:12px;
+  color:rgba(255,255,255,0.55);
+  margin-bottom:5px;
+  font-weight:500;
+}
+.extract-box input{
+  width:100%;padding:10px 14px;
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:10px;
+  background:rgba(255,255,255,0.10);
+  color:#fff;font-size:14px;outline:none;
+  transition:all .3s;
+}
+.extract-box input:focus{border-color:rgba(255,255,255,0.5);box-shadow:0 0 0 3px rgba(255,255,255,0.12)}
+.extract-box input::placeholder{color:rgba(255,255,255,0.3)}
+.extract-box input.code-input{font-family:monospace}
+
+.extract-btn-wrap{margin-top:12px}
+.extract-btn{
+  width:100%;padding:12px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#1565c0,#0d47a1);
+  color:#fff;font-weight:600;font-size:15px;
+  cursor:pointer;transition:opacity .3s;
+}
+.extract-btn:hover{opacity:.9}
+.extract-btn:disabled{opacity:.5;cursor:default}
+
+.extract-error{color:#fc8181;font-size:13px;margin-top:8px;display:none}
+
+/* ── Footer ── */
+.footer-area{
+  margin-top:16px;padding-top:12px;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+.status{font-size:12px;opacity:.5;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.status span{display:flex;align-items:center;gap:4px}
+.admin-link{display:inline-flex;align-items:center;gap:4px;color:rgba(255,255,255,0.35);text-decoration:none;font-size:12px;transition:opacity .2s}
+.admin-link:hover{opacity:.7}
+.footer-text{margin-top:4px;font-size:12px;opacity:.3}
+
+/* ════════════════════════════════════════
+   Captcha Modal
+   ════════════════════════════════════════ */
+.captcha-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;
+  animation:fadeIn .25s ease;
+}
+.captcha-overlay.show{display:flex}
+
+.captcha-modal{
+  background:#fff;
+  border-radius:16px;
+  padding:24px 22px 20px;
+  width:90%;max-width:350px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  text-align:center;
+  animation:scaleIn .3s ease;
+}
+.captcha-modal .captcha-title{color:#1a202c;font-size:15px;font-weight:700;margin-bottom:2px}
+.captcha-modal .captcha-desc{color:#a0aec0;font-size:12px;margin-bottom:16px}
+
+.captcha-image-wrap{
+  background:#f7f9fc;
+  border-radius:10px;
+  padding:8px;
+  margin-bottom:12px;
+  display:flex;align-items:center;justify-content:center;
+  min-height:56px;
+}
+.captcha-image-wrap svg{display:block;max-width:100%}
+
+.captcha-input-row{
+  display:flex;gap:8px;margin-bottom:6px;
+}
+.captcha-input-row input{
+  flex:1;padding:10px 14px;
+  border:2px solid #e2e8f0;
+  border-radius:10px;
+  font-size:15px;outline:none;
+  transition:border-color .2s;
+  letter-spacing:2px;
+}
+.captcha-input-row input:focus{border-color:#1976d2}
+.captcha-input-row input::placeholder{color:#cbd5e0;letter-spacing:0}
+
+.captcha-input-row button{
+  width:48px;
+  border:2px solid #e2e8f0;
+  border-radius:10px;
+  background:#f7f9fc;
+  color:#1976d2;
+  font-size:20px;
+  cursor:pointer;
+  transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.captcha-input-row button:hover{background:#edf2f7;border-color:#1976d2}
+
+.captcha-submit{
+  width:100%;padding:12px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#1565c0,#0d47a1);
+  color:#fff;font-weight:600;font-size:14px;
+  cursor:pointer;transition:opacity .3s;margin-top:4px;
+}
+.captcha-submit:hover{opacity:.9}
+.captcha-submit.loading{opacity:.5;cursor:default;pointer-events:none}
+
+.captcha-error{
+  color:#fc8181;font-size:12px;
+  margin-top:6px;min-height:18px;
+}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">📁</div>
+  <h1 id="siteTitle">文件分享系统</h1>
+  <p class="sub">输入分享链接或分享码即可查看和下载文件</p>
+
+  <div class="extract-box">
+    <div class="form-group">
+      <label>分享链接或分享码</label>
+      <input type="text" class="code-input" id="shareInput"
+             placeholder="粘贴链接或输入分享码"
+             onkeydown="if(event.key==='Enter') onExtractClick()">
+    </div>
+    <div class="form-group">
+      <label>提取密码 <span style="color:rgba(255,255,255,0.25);font-weight:400">(没有则留空)</span></label>
+      <input type="text" id="extractPwd" placeholder="选填" maxlength="20"
+             onkeydown="if(event.key==='Enter') onExtractClick()">
+    </div>
+    <div class="extract-btn-wrap">
+      <button class="extract-btn" onclick="onExtractClick()" id="extractBtn">📥 提取文件</button>
+    </div>
+    <div class="extract-error" id="extractError"></div>
+  </div>
+
+  <div class="footer-area">
+    <div class="status">
+      <span>🛡️ 安全</span><span>⚡ 便捷</span><span>✨ 美观</span>
+    </div>
+    <a class="admin-link" href="/admin">🔐 管理后台</a>
+    <div class="footer-text" id="appFooter"></div>
+  </div>
+</div>
+
+<!-- ═══ Captcha Modal ═══ -->
+<div class="captcha-overlay" id="captchaOverlay">
+  <div class="captcha-modal">
+    <div class="captcha-title">🔒 验证码</div>
+    <div class="captcha-desc">请输入图中验证码</div>
+    <div class="captcha-image-wrap" id="captchaImageWrap">
+      <img id="captchaImage" src="" alt="captcha" style="display:none">
+    </div>
+    <div class="captcha-input-row">
+      <input type="text" id="captchaInput" placeholder="输入验证码" maxlength="8"
+             autocomplete="off" onkeydown="if(event.key==='Enter') submitCaptcha()">
+      <button id="captchaRefreshBtn" onclick="loadCaptcha()" title="换一张">↻</button>
+    </div>
+    <button class="captcha-submit" id="captchaSubmitBtn" onclick="submitCaptcha()">✓ 确认</button>
+    <div class="captcha-error" id="captchaError"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   FileShare Main Page - EasyCaptcha-style verification
+   ═══════════════════════════════════════════════════ */
+
+// Load site settings
+fetch('/api/admin/settings').then(function(r){return r.json()}).then(function(d){
+  if(d.siteName) document.getElementById('siteTitle').textContent = d.siteName;
+  if(d.footer) document.getElementById('appFooter').textContent = d.footer;
+  if(d.captcha_on_extract !== undefined) captchaOnExtract = d.captcha_on_extract !== 'false';
+  if(d.captcha_enabled !== undefined) captchaEnabled = d.captcha_enabled !== 'false';
+}).catch(function(){});
+document.getElementById('shareInput').focus();
+
+var captchaKey = '';
+var captchaVerified = false;
+var captchaEnabled = true;
+var captchaOnExtract = true;
+var pendingExtract = null;
+
+/* ── Extract click: validate → show captcha ── */
+function onExtractClick() {
+  var input = document.getElementById('shareInput').value.trim();
+  var pwd = document.getElementById('extractPwd').value.trim();
+  if (!input) { showError('请输入分享链接或分享码'); return; }
+
+  var code = input;
+  var m = input.match(/\/s\/([a-zA-Z0-9_-]+)/);
+  if (m) code = m[1];
+
+  if (!pwd && /#/.test(input)) {
+    var hashPart = input.split('#')[1] || '';
+    if (hashPart.length > 0 && hashPart.length <= 30) pwd = hashPart;
+  }
+  code = code.split('#')[0].trim();
+  if (!code || code.length < 4) { showError('无效的分享码'); return; }
+
+  pendingExtract = { code: code, pwd: pwd };
+  captchaVerified = false;
+  if (captchaEnabled && captchaOnExtract) {
+    showCaptcha();
+  } else {
+    doExtract();
+  }
+}
+
+function doExtract() {
+  if (!pendingExtract) return;
+  var e = pendingExtract;
+  pendingExtract = null;
+  var url = '/s/' + encodeURIComponent(e.code);
+  if (e.pwd) url += '#' + encodeURIComponent(e.pwd);
+  window.location.href = url;
+}
+
+/* ═══════════════════════════════════════════════════
+   Captcha — EasyCaptcha-style (SVG generator)
+   ═══════════════════════════════════════════════════ */
+
+function showCaptcha() {
+  document.getElementById('captchaOverlay').classList.add('show');
+  document.getElementById('captchaInput').value = '';
+  document.getElementById('captchaError').textContent = '';
+  setTimeout(function() { document.getElementById('captchaInput').focus(); }, 200);
+  loadCaptcha();
+}
+
+function loadCaptcha() {
+  fetch('/api/captcha/generate')
+    .then(function(r){ return r.json() })
+    .then(function(data) {
+      if (data.error) {
+        document.getElementById('captchaError').textContent = data.error;
+        return;
+      }
+      captchaKey = data.key;
+      // Inject SVG into the image wrap
+      var wrap = document.getElementById('captchaImageWrap');
+      wrap.innerHTML = data.svg;
+      document.getElementById('captchaInput').value = '';
+      document.getElementById('captchaInput').focus();
+    })
+    .catch(function() {
+      document.getElementById('captchaError').textContent = '验证码加载失败';
+    });
+}
+
+function submitCaptcha() {
+  var answer = document.getElementById('captchaInput').value.trim();
+  if (!answer) {
+    document.getElementById('captchaError').textContent = '请输入验证码';
+    return;
+  }
+
+  var btn = document.getElementById('captchaSubmitBtn');
+  btn.classList.add('loading');
+  btn.textContent = '⏳';
+  document.getElementById('captchaError').textContent = '';
+
+  fetch('/api/captcha/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: captchaKey, answer: answer })
+  })
+  .then(function(r){ return r.json() })
+  .then(function(data) {
+    btn.classList.remove('loading');
+    btn.textContent = '✓ 确认';
+    if (data.success) {
+      captchaVerified = true;
+      document.getElementById('captchaOverlay').classList.remove('show');
+      // Execute pending extract
+      doExtract();
+    } else {
+      document.getElementById('captchaError').textContent = data.error || '验证码错误';
+      setTimeout(loadCaptcha, 600);
+    }
+  })
+  .catch(function() {
+    btn.classList.remove('loading');
+    btn.textContent = '✓ 确认';
+    document.getElementById('captchaError').textContent = '请求失败，请重试';
+  });
+}
+
+// Close overlay on background click
+document.getElementById('captchaOverlay').addEventListener('click', function(e) {
+  if (e.target === this) {
+    this.classList.remove('show');
+    pendingExtract = null;
+  }
+});
+</script>
+</body>
+</html>

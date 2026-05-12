@@ -1,0 +1,45 @@
+{
+  "name": "fileshare",
+  "version": "1.0.0",
+  "description": "轻量级文件分享系统 - 支持文件夹分享、提取码保护、在线预览、SVG验证码的毛玻璃风格文件分享平台",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "stop": "pkill -f 'node.*server\\.js' || true",
+    "restart": "npm stop && sleep 1 && npm start",
+    "status": "curl -s -o /dev/null -w '%{http_code}' http://localhost:6606/"
+  },
+  "keywords": [
+    "file-share",
+    "file-transfer",
+    "file-sharing",
+    "preview",
+    "glassmorphism",
+    "svg-captcha",
+    "nodejs",
+    "express",
+    "sqlite"
+  ],
+  "homepage": "https://github.com/cjm2004/FileShare",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cjm2004/FileShare.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cjm2004/FileShare/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "archiver": "^7.0.0",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "svg-captcha": "^1.4.0"
+  }
+}
