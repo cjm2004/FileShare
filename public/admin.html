@@ -1,0 +1,2767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - 文件分享</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+/* ── Admin Layout ── */
+.admin-body {
+  background: linear-gradient(135deg, #0d47a1, #1976d2, #0d47a1);
+  display: flex;
+  min-height: 100vh;
+}
+.dashboard-layout {
+  flex: 1;
+  display: flex;
+  min-height: 100vh;
+  min-width: 0;
+}
+
+.sidebar {
+  width: 240px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+.sidebar.collapsed .sidebar-header { padding: 18px 0; text-align: center; }
+.sidebar.collapsed .sidebar-header h2,
+.sidebar.collapsed .sidebar-header p { display: none; }
+.sidebar.collapsed .sidebar-header-row { justify-content: center; }
+.sidebar.collapsed .sidebar-nav button { justify-content: center; padding: 12px 0; }
+.sidebar.collapsed .sidebar-nav button .nav-label { display: none; }
+.sidebar.collapsed .sidebar-footer { padding: 16px 0; display: flex; flex-direction: column; align-items: center; }
+.sidebar.collapsed .sidebar-footer button { justify-content: center; padding: 8px 0; width: 100%; }
+.sidebar.collapsed .sidebar-footer button .nav-label { display: none; }
+.sidebar.collapsed .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.08); }
+
+.sidebar-header {
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-collapse-btn {
+  display: none;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.sidebar-collapse-btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+@media (min-width: 769px) {
+  .sidebar-collapse-btn { display: flex; }
+}
+.sidebar-header h2 {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+.sidebar-header p {
+  color: rgba(255,255,255,0.4);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+.sidebar-nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.sidebar-nav button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.sidebar-nav button.active {
+  background: rgba(25,118,210,0.15);
+  color: #a3bffa;
+  border-right: 3px solid #1976d2;
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-footer button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.2s;
+}
+.sidebar-footer button:hover { color: var(--danger-light); }
+
+.main-content {
+  flex: 1;
+  padding: 28px 32px;
+  overflow-y: auto;
+  max-height: 100vh;
+  min-width: 0;
+}
+
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+.section-title {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+.section-desc {
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+  margin-bottom: 20px;
+  margin-top: -16px;
+}
+
+/* ── Admin Cards ── */
+.admin-card {
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  max-width: 100%;
+  overflow: hidden;
+}
+.admin-card h3 {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block; color: rgba(255,255,255,0.7);
+  font-size: 13px; font-weight: 500; margin-bottom: 6px;
+}
+.input {
+  width:100%;
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  color:#fff;
+  font-size:14px;
+  outline:none;
+  transition:border-color .3s,box-shadow .3s;
+}
+.input:focus { border-color:#1976d2; box-shadow:0 0 0 3px rgba(25,118,210,0.2); }
+.input::placeholder { color:rgba(255,255,255,0.3); }
+.form-group .input {
+  /* Inherits all from .input above */
+}
+.form-group .input:focus { border-color: #1976d2; }
+.form-group .input::placeholder { color: rgba(255,255,255,0.3); }
+.form-group select.input option { color: #1a202c; background: #fff; }
+
+/* ── File Browser ── */
+.file-browser-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.file-browser-header .current-path {
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-family: monospace;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-tree {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 8px 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: rgba(255,255,255,0.8);
+  font-size: 14px;
+}
+.file-item:hover { background: rgba(255,255,255,0.06); }
+.file-item .checkbox { margin-right: 4px; }
+.file-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-item .size { color: rgba(255,255,255,0.4); font-size: 12px; flex-shrink: 0; }
+.file-item .dir-toggle {
+  width: 20px; height: 20px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.4);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.file-item .dir-toggle.open { transform: rotate(90deg); }
+.file-item.selected { background: rgba(25,118,210,0.15); }
+.file-children { padding-left: 24px; display: none; }
+.file-children.open { display: block; }
+
+/* ── Table ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+.data-table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.data-table td {
+  padding: 12px;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+.data-table tr:hover td { background: rgba(255,255,255,0.03); }
+
+.table-actions {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.table-actions button {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.table-actions button:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.table-actions button.danger:hover { border-color: var(--danger); color: var(--danger-light); }
+
+.table-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.pagination button {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.pagination button:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.pagination button.active { background: #1976d2; color: #fff; border-color: #1976d2; }
+.pagination button:disabled { opacity: 0.3; cursor: default; }
+.pagination .page-info { color: rgba(255,255,255,0.5); font-size: 13px; }
+
+/* ── Inline Edit ── */
+.inline-edit input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+}
+.inline-edit input:focus { border-color: #1976d2; }
+
+/* ── Copy Feedback ── */
+.copy-feedback {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  z-index: 9999;
+  backdrop-filter: blur(12px);
+  animation: fadeUp 0.3s ease, fadeOut 0.3s ease 1.5s forwards;
+}
+@keyframes fadeUp {
+  from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 30px rgba(0,0,0,0.3);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-backdrop {
+    display: block;
+    position: fixed; inset: 0;
+    z-index: 99;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .sidebar.open ~ .sidebar-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .main-content { padding: 20px 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  .data-table { font-size: 12px; }
+  .data-table th, .data-table td { padding: 8px 6px; }
+  .admin-card { padding: 16px; }
+  .toast-container { left: 20px; right: 20px; top: 16px; }
+  .toast { max-width: 100%; }
+}
+
+/* ── Sidebar backdrop (mobile only, hidden on desktop) ── */
+.sidebar-backdrop { display: none; }
+
+#loginForm input:focus {
+  border-color: rgba(255,255,255,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(25,118,210,0.25) !important;
+}
+
+.mobile-menu-btn {
+  display: none;
+  position: fixed; top: 16px; left: 16px; z-index: 101;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 20px;
+  backdrop-filter: blur(10px);
+  align-items: center; justify-content: center;
+}
+@media (max-width: 768px) {
+  .mobile-menu-btn { display: flex; }
+}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-sm{padding:7px 14px;font-size:13px;border-radius:8px}
+.btn-primary{background:linear-gradient(135deg,#1e88e5,#1565c0);color:#fff;box-shadow:0 3px 10px rgba(25,118,210,0.25)}
+.btn-primary:hover{box-shadow:0 5px 15px rgba(25,118,210,0.4);transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.12)}
+.btn-ghost:hover{background:rgba(255,255,255,0.12);color:#fff}
+.btn-danger{background:rgba(229,62,62,0.15);color:#fc8181;border:1px solid rgba(229,62,62,0.2)}
+.btn-danger:hover{background:rgba(229,62,62,0.25)}
+.btn-success{background:rgba(56,161,105,0.15);color:#68d391;border:1px solid rgba(56,161,105,0.2)}
+.btn-success:hover{background:rgba(56,161,105,0.25)}
+
+/* ── Glass Modal ── */
+.modal-overlay{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal-box{background:rgba(30,30,50,0.80);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:28px 30px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);animation:modalIn .25s ease}
+@keyframes modalIn{from{transform:scale(0.92) translateY(12px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px}
+.modal-body{font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:20px;line-height:1.6}
+.modal-input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;font-size:14px;outline:none;margin-bottom:16px;transition:border-color .2s;box-sizing:border-box}
+.modal-input:focus{border-color:#1976d2}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.modal-btn{padding:9px 20px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.modal-btn-primary{background:linear-gradient(135deg,#1e88e5,#1565c0);color:#fff}
+.modal-btn-primary:hover{box-shadow:0 4px 14px rgba(25,118,210,0.35)}
+.modal-btn-ghost{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)}
+.modal-btn-ghost:hover{background:rgba(255,255,255,0.12);color:#fff}
+.modal-btn-danger{background:rgba(229,62,62,0.15);color:#fc8181}
+.modal-btn-danger:hover{background:rgba(229,62,62,0.25)}
+
+/* ── Badge ── */
+.empty-state p { color: #fff; }
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-success{background:rgba(56,161,105,0.15);color:#68d391}
+.badge-danger{background:rgba(229,62,62,0.15);color:#fc8181}
+.badge-warning{background:rgba(214,158,46,0.15);color:#ecc94b}
+
+/* ── Visit Chart / Calendar ── */
+.calendar-grid {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:3px;
+  margin-top:10px;
+}
+.calendar-weekday {
+  text-align:center;
+  font-size:11px;
+  color:rgba(255,255,255,0.35);
+  padding:4px 0;
+  font-weight:600;
+}
+.calendar-day {
+  aspect-ratio:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  background:rgba(255,255,255,0.04);
+  cursor:pointer;
+  transition:all .15s;
+  font-size:12px;
+  color:rgba(255,255,255,0.6);
+  position:relative;
+  gap:1px;
+  padding:2px;
+}
+.calendar-day:hover {
+  background:rgba(255,255,255,0.1);
+}
+.calendar-day.active {
+  background:rgba(25,118,210,0.25);
+  border:1px solid rgba(25,118,210,0.4);
+}
+.calendar-day .day-num {
+  font-weight:600;
+  font-size:13px;
+}
+.calendar-day .day-count {
+  font-size:9px;
+  color:rgba(100,180,255,0.6);
+  line-height:1;
+}
+.calendar-day.empty {
+  background:none;
+  cursor:default;
+}
+.calendar-day.today {
+  border:1px solid rgba(255,255,255,0.2);
+}
+.calendar-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+}
+.calendar-nav-btn {
+  background:rgba(255,255,255,0.06);
+  border:none;
+  color:rgba(255,255,255,0.5);
+  width:26px;
+  height:26px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .15s;
+}
+.calendar-nav-btn:hover {
+  background:rgba(255,255,255,0.12);
+  color:#fff;
+}
+.calendar-title {
+  color:rgba(255,255,255,0.7);
+  font-size:13px;
+  font-weight:600;
+}
+
+/* ── Spinner / Loading ── */
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+.spinner-dark{border-color:rgba(255,255,255,0.15);border-top-color:#1976d2}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.3);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font-size:15px}
+.loading-overlay .spinner{width:40px;height:40px;border-width:3px}
+
+/* ── Toast ── */
+.toast-container{position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px}
+.toast{padding:14px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.15);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);animation:slideIn .3s ease,fadeOut .3s ease 3s forwards;max-width:360px;display:flex;align-items:center;gap:10px}
+.toast-success{background:rgba(56,161,105,0.85)}
+.toast-error{background:rgba(229,62,62,0.85)}
+.toast-info{background:rgba(49,130,206,0.85)}
+.toast-warning{background:rgba(214,158,46,0.85)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeOut{to{opacity:0;transform:translateX(60px)}}
+/* ── Template Editor ── */
+.tpl-btn {
+  padding: 10px 18px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tpl-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.tpl-btn.active {
+  background: rgba(25,118,210,0.2);
+  border-color: #1976d2;
+  color: #a3bffa;
+}
+.tpl-btn .tpl-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  background: rgba(76,175,80,0.2);
+  color: #81c784;
+}
+.tpl-btn .tpl-badge.original {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.4);
+}
+</style>
+</head>
+<body class="admin-body">
+
+<!-- ═══ Login Screen (shown when not authenticated) ═══ -->
+<div id="loginScreen" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d47a1,#1976d2,#42a5f5);display:flex;align-items:center;justify-content:center;">
+  <div class="login-card" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.25);border-radius:24px;padding:40px 36px;width:90%;max-width:400px;box-shadow:0 12px 40px rgba(0,0,0,0.15);text-align:center">
+    <div style="font-size:52px;margin-bottom:12px">📁</div>
+    <h1 style="color:#fff;font-size:22px;font-weight:700;margin-bottom:4px">管理后台</h1>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:28px">请登录以继续</p>
+    <form id="loginForm" onsubmit="doLogin(event)" style="text-align:left">
+      <div style="margin-bottom:16px">
+        <label style="display:block;color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;margin-bottom:6px">用户名</label>
+        <input type="text" id="loginUsername" required placeholder="请输入用户名" style="width:100%;padding:12px 14px;border:1px solid rgba(255,255,255,0.25);border-radius:12px;background:rgba(255,255,255,0.10);color:#fff;font-size:14px;outline:none;transition:all 0.3s">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;margin-bottom:6px">密码</label>
+        <input type="password" id="loginPassword" required placeholder="请输入密码" style="width:100%;padding:12px 14px;border:1px solid rgba(255,255,255,0.25);border-radius:12px;background:rgba(255,255,255,0.10);color:#fff;font-size:14px;outline:none;transition:all 0.3s">
+      </div>
+      <button type="submit" id="loginSubmitBtn" style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(25,118,210,0.4);transition:all 0.3s">登 录</button>
+    </form>
+    <div id="loginError" style="color:#fc8181;font-size:13px;margin-top:12px;display:none"></div>
+    <div style="margin-top:16px;color:rgba(255,255,255,0.3);font-size:12px">默认账号: admin / admin123</div>
+  </div>
+</div>
+
+<!-- ═══ Forced Password Change Overlay (shown after login with default password) ═══ -->
+<div id="forceChangePwdOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0d47a1,#1976d2,#42a5f5);align-items:center;justify-content:center;padding:20px">
+  <div style="background:rgba(255,255,255,0.12);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:36px 32px;width:90%;max-width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:scaleIn .35s ease">
+    <div style="font-size:48px;margin-bottom:8px">⚠️</div>
+    <h2 style="color:#fff;font-size:18px;font-weight:700;margin-bottom:4px">请修改默认密码</h2>
+    <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:20px">您正在使用默认密码，为安全起见请立即修改</p>
+    <div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label style="display:block;color:rgba(255,255,255,0.5);font-size:12px;margin-bottom:5px;text-align:left">新密码</label>
+        <input type="password" class="input" id="forceNewPwd" placeholder="至少 6 位" style="color:#fff;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);width:100%;padding:11px 14px;border-radius:10px;font-size:14px;outline:none;transition:border-color .3s"
+          onfocus="this.style.borderColor='rgba(25,118,210,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'"
+          onkeydown="if(event.key==='Enter') submitForceChangePwd()">
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label style="display:block;color:rgba(255,255,255,0.5);font-size:12px;margin-bottom:5px;text-align:left">确认新密码</label>
+        <input type="password" class="input" id="forceNewPwd2" placeholder="再次输入" style="color:#fff;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);width:100%;padding:11px 14px;border-radius:10px;font-size:14px;outline:none;transition:border-color .3s"
+          onfocus="this.style.borderColor='rgba(25,118,210,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'"
+          onkeydown="if(event.key==='Enter') submitForceChangePwd()">
+      </div>
+    </div>
+    <button onclick="submitForceChangePwd()" id="forceChangePwdBtn" style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .3s">🔒 修改密码并进入</button>
+    <div id="forceChangePwdError" style="color:#fc8181;font-size:13px;margin-top:12px;display:none"></div>
+    <div style="margin-top:14px;color:rgba(255,255,255,0.15);font-size:12px">必须修改密码后才能继续使用</div>
+  </div>
+</div>
+
+<!-- ═══ Dashboard Layout (shown after login) ═══ -->
+<div id="dashboardLayout" class="dashboard-layout" style="display:none">
+<button class="mobile-menu-btn" onclick="toggleSidebar()" id="menuBtn">☰</button>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-header-row">
+      <div>
+        <h2>📁 FileShare</h2>
+        <p id="adminUser"></p>
+      </div>
+      <button class="sidebar-collapse-btn" onclick="event.stopPropagation();toggleSidebar()" title="收起/展开侧栏">☰</button>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <button data-page="dashboard" data-hash="dashboard" onclick="navigateTo('dashboard',this)">
+      📊<span class="nav-label"> 数据概览</span>
+    </button>
+    <button data-page="shares" data-hash="shares" onclick="navigateTo('shares',this)">
+      🔗<span class="nav-label"> 分享记录</span>
+    </button>
+    <button data-page="create" data-hash="create" onclick="navigateTo('create',this)">
+      ✨<span class="nav-label"> 创建分享</span>
+    </button>
+    <button data-page="extract" data-hash="extract" onclick="navigateTo('extract',this)">
+      📥<span class="nav-label"> 提取文件</span>
+    </button>
+    <button data-page="settings" data-hash="settings" onclick="navigateTo('settings',this)">
+      ⚙️<span class="nav-label"> 系统设置</span>
+    </button>
+    <button data-page="preview" data-hash="preview" onclick="navigateTo('preview',this)">
+      📖<span class="nav-label"> 预览设置</span>
+    </button>
+    <button data-page="security" data-hash="security" onclick="navigateTo('security',this)">
+      🔐<span class="nav-label"> 系统安全</span>
+    </button>
+    <button data-page="templates" data-hash="templates" onclick="navigateTo('templates',this)">
+      📝<span class="nav-label"> 模板编辑</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button onclick="logout()">🚪<span class="nav-label"> 退出登录</span></button>
+  </div>
+</div>
+
+<div class="sidebar-backdrop" onclick="closeSidebarMobile()"></div>
+
+<div class="main-content" id="mainContent">
+  <!-- ═══ Dashboard ═══ -->
+  <section class="page-section active" id="page-dashboard">
+    <h2 class="section-title">📊 数据概览</h2>
+    <p class="section-desc">系统整体运行状态一览</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px" id="statsCards">
+      <div class="admin-card" style="text-align:center;padding:20px">
+        <div style="font-size:36px;margin-bottom:8px">🔗</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:13px">总分享数</div>
+        <div style="color:#fff;font-size:28px;font-weight:700" id="statTotal">0</div>
+      </div>
+      <div class="admin-card" style="text-align:center;padding:20px">
+        <div style="font-size:36px;margin-bottom:8px">✅</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:13px">有效分享</div>
+        <div style="color:#9ae6b4;font-size:28px;font-weight:700" id="statActive">0</div>
+      </div>
+      <div class="admin-card" style="text-align:center;padding:20px">
+        <div style="font-size:36px;margin-bottom:8px">😢</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:13px">已失效</div>
+        <div style="color:#fc8181;font-size:28px;font-weight:700" id="statExpired">0</div>
+      </div>
+      <div class="admin-card" style="text-align:center;padding:20px">
+        <div style="font-size:36px;margin-bottom:8px">👁️</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:13px">总访问次数</div>
+        <div style="color:#f6adfa;font-size:28px;font-weight:700" id="statVisits">0</div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <h3>🆕 最近的分享</h3>
+      <div id="recentShares"><div class="empty-state"><p>暂无分享记录</p></div></div>
+    </div>
+
+    <!-- ═══ 访问曲线图 ═══ -->
+    <div class="admin-card" id="visitChartCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <h3 style="margin:0">📈 访问趋势</h3>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5)" id="visitChartDateLabel">今日</div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:280px">
+          <canvas id="visitChartCanvas" width="600" height="240" style="width:100%;height:auto;border-radius:8px;background:rgba(255,255,255,0.03)"></canvas>
+        </div>
+        <div style="width:260px;flex-shrink:0" id="visitCalendar"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Shares ═══ -->
+  <section class="page-section" id="page-shares">
+    <h2 class="section-title">🔗 分享记录</h2>
+    <p class="section-desc">管理所有已生成的分享链接</p>
+
+    <div class="admin-card">
+      <div class="table-top-bar">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-danger btn-sm" onclick="cleanupShares()">🗑️ 一键清理失效</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="input" style="max-width:220px" type="text" id="shareSearch" placeholder="🔍 搜索分享码..." oninput="loadShares(1)">
+        </div>
+      </div>
+      <div style="overflow-x:auto;max-width:100%">
+        <table class="data-table" id="sharesTable">
+          <thead>
+            <tr>
+              <th>分享码</th>
+              <th>文件</th>
+              <th>提取码</th>
+              <th>过期</th>
+              <th>访问</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="sharesBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="sharesPagination"></div>
+    </div>
+  </section>
+
+  <!-- ═══ Create Share ═══ -->
+  <section class="page-section" id="page-create">
+    <h2 class="section-title">✨ 创建分享</h2>
+    <p class="section-desc">浏览本地文件并创建分享链接</p>
+
+    <div class="admin-card">
+      <h3>📂 文件浏览器</h3>
+      <div class="file-browser-header">
+        <button class="btn btn-sm btn-ghost" onclick="goUpDir()">⬆ 上级</button>
+        <span class="current-path" id="currentPath">/</span>
+        <button class="btn btn-sm btn-ghost" onclick="refreshFileList()">🔄 刷新</button>
+      </div>
+      <div class="file-tree" id="fileTree"></div>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="color:rgba(255,255,255,0.5);font-size:13px">已选: <strong id="selectedCount" style="color:#a3bffa">0</strong></span>
+        <button class="btn btn-sm btn-ghost" onclick="clearSelection()">清空</button>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <h3>🔧 分享配置</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>自定义分享码 <span style="color:rgba(255,255,255,0.3)">(留空则自动生成)</span></label>
+          <input class="input" id="newCustomCode" placeholder="自定义分享码，如 myfiles" maxlength="32">
+        </div>
+        <div class="form-group">
+          <label>提取码 <span style="color:rgba(255,255,255,0.3)">(留空则无需提取码)</span></label>
+          <input class="input" id="newExtractCode" placeholder="自定义提取码" maxlength="20">
+          <label style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer;color:rgba(255,255,255,0.6);font-size:13px">
+            <input type="checkbox" id="appendCodeCheck" checked>
+            提取码附在链接中 <span style="color:rgba(255,255,255,0.3)">(访问时自动填充)</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>过期时间 <span style="color:rgba(255,255,255,0.3)">(留空则永久有效)</span></label>
+          <input class="input" id="newExpiryDate" type="datetime-local">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>最大访问次数 <span style="color:rgba(255,255,255,0.3)">(0 表示不限)</span></label>
+          <input class="input" id="newMaxVisits" type="number" min="0" value="0" placeholder="0 = 不限">
+        </div>
+        <div class="form-group">
+          <label>通知设置</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:rgba(255,255,255,0.6);font-size:13px">
+            <input type="checkbox" id="newShowNotification" checked>
+            显示通知弹窗
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>上部提示 <span style="color:rgba(255,255,255,0.3)">(支持 Markdown，显示在文件列表上方)</span></label>
+        <textarea class="input" id="newTopHint" rows="3" placeholder="可选：将此内容显示在分享页文件列表的上方..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>下部提示 <span style="color:rgba(255,255,255,0.3)">(支持 Markdown，显示在文件列表下方)</span></label>
+        <textarea class="input" id="newBottomHint" rows="3" placeholder="可选：将此内容显示在分享页文件列表的下方..."></textarea>
+      </div>
+      <button class="btn btn-success" onclick="createShare()" id="createShareBtn">✨ 生成分享链接</button>
+    </div>
+
+    <!-- Share result -->
+    <div class="admin-card" id="shareResultCard" style="display:none">
+      <h3>✅ 分享已创建</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <input class="input" id="shareResultLink" readonly style="flex:1;min-width:200px;font-family:monospace;font-size:13px">
+          <button class="btn btn-sm btn-primary" onclick="copyResultLink()">📋 复制链接</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Extract ═══ -->
+  <section class="page-section" id="page-extract">
+    <h2 class="section-title">📥 提取文件</h2>
+    <p class="section-desc">输入分享链接或分享码，查看并提取其中的文件</p>
+
+    <div class="admin-card">
+      <div class="form-group">
+        <label>分享链接或分享码</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input class="input" id="extractShareInput" placeholder="粘贴分享链接或输入分享码" style="flex:1;min-width:200px;font-family:monospace" onkeydown="if(event.key==='Enter') doExtract()">
+          <button class="btn btn-primary" onclick="doExtract()">📥 提取</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="extractResult" style="display:none">
+      <div class="admin-card" id="extractInfo">
+        <h3>📋 分享信息</h3>
+        <div id="extractMeta" style="color:rgba(255,255,255,0.6);font-size:13px"></div>
+      </div>
+      <div class="admin-card">
+        <h3>📂 文件列表</h3>
+        <div id="extractFiles" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+    <div id="extractError" class="admin-card" style="display:none;border-color:rgba(252,129,129,0.3)">
+      <p id="extractErrorText" style="color:#fc8181"></p>
+    </div>
+  </section>
+
+  <!-- ═══ Settings ═══ -->
+  <section class="page-section" id="page-settings">
+    <h2 class="section-title">⚙️ 系统设置</h2>
+    <p class="section-desc">自定义分享页面外观与内容</p>
+
+    <div class="admin-card">
+      <h3>🎨 外观设置</h3>
+      <div class="form-group">
+        <label>站点名称</label>
+        <input class="input" id="setSiteName" placeholder="文件分享">
+      </div>
+      <div class="form-group">
+        <label>背景图片</label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" onclick="document.getElementById('bgUploadInput').click()">选择文件并上传</button>
+          <button class="btn btn-sm btn-ghost" id="removeBgBtn" onclick="removeBg()" style="display:none">移除</button>
+        </div>
+        <input type="file" id="bgUploadInput" accept="image/*" style="display:none" onchange="uploadBg()">
+        <div style="margin-top:8px;border-radius:10px;overflow:hidden;max-height:150px;display:none" id="bgPreviewWrap">
+          <img id="bgPreview" style="width:100%;object-fit:cover">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:12px">💾 保存设置</button>
+    </div>
+
+    <div class="admin-card">
+      <h3>🔗 分享设置</h3>
+      <div class="form-group">
+        <label>域名绑定</label>
+        <input class="input" id="setDomain" placeholder="域名">
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:12px">💾 保存设置</button>
+    </div>
+
+    <div class="admin-card">
+      <h3>📝 内容设置</h3>
+      <div class="form-group">
+        <label>公告内容 <span style="color:rgba(255,255,255,0.3)">(显示在分享页面上方)</span></label>
+        <textarea class="input" id="setAnnouncement" rows="3" placeholder="欢迎语..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>页脚内容</label>
+        <input class="input" id="setFooter" placeholder="© 2026 FileShare">
+      </div>
+      <div class="form-group">
+        <label>文件扫描根路径</label>
+        <input class="input" id="setScanRoot" placeholder="/path/to/files">
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()">💾 保存设置</button>
+    </div>
+
+    <div class="admin-card">
+      <h3>🔒 验证码设置 <span style="font-size:12px;color:rgba(255,255,255,0.3);font-weight:400">(EasyCaptcha)</span></h3>
+      <div class="form-group">
+        <label>开启验证码</label>
+        <button class="btn" id="setCaptchaToggleBtn" onclick="toggleCaptcha()"
+          style="background:#1976d2;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">
+          ✅ 已开启
+        </button>
+      </div>
+      <div id="captchaExtraSettings" style="transition:opacity .3s">
+        <div class="form-group">
+          <label>验证码类型</label>
+          <select class="input" id="setCaptchaType">
+            <option value="arithmetic">算术验证码 (如 3+2=?)</option>
+            <option value="char">字符验证码</option>
+          </select>
+        </div>
+        <div class="form-group" id="captchaLenGroup">
+          <label id="captchaLenLabel">运算位数</label>
+          <select class="input" id="setCaptchaLen">
+            <option value="1">1 位</option>
+            <option value="2" selected>2 位</option>
+            <option value="3">3 位</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>提取前验证</label>
+          <button class="btn captcha-scope-btn" id="setCaptchaExtractBtn" onclick="toggleCaptchaScope('extract')"
+            style="background:#1976d2;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">
+            ✅ 已开启
+          </button>
+        </div>
+        <div class="form-group">
+          <label>下载前验证</label>
+          <button class="btn captcha-scope-btn" id="setCaptchaDownloadBtn" onclick="toggleCaptchaScope('download')"
+            style="background:#1976d2;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">
+            ✅ 已开启
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:12px">💾 保存设置</button>
+    </div>
+
+    <div class="admin-card">
+      <h3>🔔 通知设置</h3>
+      <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">用户通过验证进入文件查看页时，以窗口显示通知</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>通知标题</label>
+          <input class="input" id="setNotificationTitle" placeholder="欢迎访问文件分享">
+        </div>
+        <div class="form-group">
+          <label>等待时间（秒）</label>
+          <input class="input" id="setNotificationWaitTime" type="number" min="0" max="30" value="0" style="max-width:100px">
+          <span style="font-size:11px;color:rgba(255,255,255,0.3)">等待时间内用户无法关闭通知</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>通知内容（支持 Markdown）</label>
+        <textarea class="input" id="setNotificationContent" rows="3" placeholder="感谢您访问本分享，请按需下载文件。"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:12px">💾 保存设置</button>
+    </div>
+
+  </section>
+
+  <!-- ═══ Preview ═══ -->
+  <section class="page-section" id="page-preview">
+    <h2 class="section-title">📖 预览设置</h2>
+    <p class="section-desc">配置文件在线预览支持</p>
+
+    <div class="admin-card">
+      <h3>📖 预览设置</h3>
+      <div class="form-group">
+        <label>预览模式</label>
+        <select class="input" id="setPreviewMode" onchange="toggleKkfileview()">
+          <option value="system">系统预览（仅支持少部分文件）</option>
+          <option value="custom">自定义预览（KKFileView）</option>
+        </select>
+        <span style="font-size:12px;color:rgba(255,255,255,0.3)">选择「自定义预览」需配置下方 KKFileView 地址</span>
+      </div>
+      <div class="form-group">
+        <label>可在线预览的后缀</label>
+        <input class="input" id="setPreviewExts" placeholder="例如 .txt,.md,.jpg,.png,.mp4" value=".txt,.md,.jpg,.jpeg,.png,.gif,.bmp,.webp,.mp4,.webm">
+        <span style="font-size:12px;color:rgba(255,255,255,0.3)">用逗号分隔，空则不限制</span>
+      </div>
+      <div class="form-group" id="kkfileviewGroup">
+        <label>KKFileView 地址</label>
+        <input class="input" id="setKkfileviewUrl" placeholder="例如：http://localhost:8012">
+        <span style="font-size:12px;color:rgba(255,255,255,0.3)">Office 文档（doc/xls/ppt/pdf）将用此服务在线预览，留空则只提供下载</span>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:12px">💾 保存设置</button>
+    </div>
+
+  </section>
+
+  <!-- ═══ Security ═══ -->
+  <section class="page-section" id="page-security">
+    <h2 class="section-title">🔒 系统安全</h2>
+    <p class="section-desc">账户安全与系统安全防护设置</p>
+
+    <div class="admin-card" style="max-width:460px">
+      <h3>👤 修改用户名</h3>
+      <div class="form-group">
+        <label>当前用户名</label>
+        <input class="input" id="currentUsername" readonly style="opacity:0.6">
+      </div>
+      <div class="form-group">
+        <label>新用户名</label>
+        <input class="input" id="newUsername" placeholder="输入新用户名" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label>管理员密码 <span style="color:rgba(255,255,255,0.3)">(需要验证身份)</span></label>
+        <input class="input" id="changeNamePassword" type="password" placeholder="输入当前密码">
+      </div>
+      <button class="btn btn-primary" onclick="changeUsername()">✏️ 修改用户名</button>
+    </div>
+
+    <div class="admin-card" style="max-width:460px">
+      <h3>🔑 修改密码</h3>
+      <div class="form-group">
+        <label>当前密码</label>
+        <input class="input" id="oldPassword" type="password" placeholder="输入当前密码">
+      </div>
+      <div class="form-group">
+        <label>新密码</label>
+        <input class="input" id="newPassword" type="password" placeholder="至少8位字符，需包含字母+数字" minlength="8">
+      </div>
+      <div class="form-group">
+        <label>确认新密码</label>
+        <input class="input" id="confirmPassword" type="password" placeholder="再次输入新密码">
+      </div>
+      <button class="btn btn-primary" onclick="changePassword()">🔑 修改密码</button>
+    </div>
+
+    <!-- ═══ 安全防护设置 ═══ -->
+    <div class="admin-card">
+      <h3>🛡️ 速率限制设置</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>分享创建限制 <span style="color:rgba(255,255,255,0.3)">(防止批量刷分享)</span></label>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-sm" id="setRateLimitShareBtn" onclick="toggleSetting('rateLimitShare')" style="background:#1976d2;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">✅ 已开启</button>
+          </div>
+          <div id="setRateLimitShareExtra" style="margin-top:8px">
+            <label style="color:rgba(255,255,255,0.5);font-size:12px">每分钟最大创建数</label>
+            <input class="input" id="setRateLimitShareMax" type="number" min="1" max="200" value="20" style="max-width:120px;margin-top:4px">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>提取码验证限制 <span style="color:rgba(255,255,255,0.3)">(防暴力猜解提取码)</span></label>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-sm" id="setRateLimitVerifyBtn" onclick="toggleSetting('rateLimitVerify')" style="background:#1976d2;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">✅ 已开启</button>
+          </div>
+          <div id="setRateLimitVerifyExtra" style="margin-top:8px">
+            <label style="color:rgba(255,255,255,0.5);font-size:12px">每分钟最大验证次数</label>
+            <input class="input" id="setRateLimitVerifyMax" type="number" min="1" max="500" value="40" style="max-width:120px;margin-top:4px">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>登录尝试限制 <span style="color:rgba(255,255,255,0.3)">(防暴力破解密码)</span></label>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-sm" id="setRateLimitLoginBtn" onclick="toggleSetting('rateLimitLogin')" style="background:#1976d2;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">✅ 已开启</button>
+          </div>
+          <div id="setRateLimitLoginExtra" style="margin-top:8px">
+            <label style="color:rgba(255,255,255,0.5);font-size:12px">锁定前允许失败次数</label>
+            <input class="input" id="setRateLimitLoginMax" type="number" min="1" max="50" value="5" style="max-width:120px;margin-top:4px">
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveRateLimitSettings()" style="margin-top:12px">💾 保存速率限制</button>
+    </div>
+
+    <div class="admin-card">
+      <h3>📏 输入限制设置</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>单次批量下载个数上限</label>
+          <input class="input" id="setBatchDownloadLimit" type="number" min="1" max="1000" value="100" style="max-width:120px">
+        </div>
+        <div class="form-group">
+          <label>提取码最大长度</label>
+          <input class="input" id="setExtractMaxLength" type="number" min="8" max="128" value="64" style="max-width:120px">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>自定义分享码最大长度</label>
+          <input class="input" id="setShareCodeMaxLength" type="number" min="8" max="64" value="32" style="max-width:120px">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveInputLimitSettings()" style="margin-top:12px">💾 保存输入限制</button>
+    </div>
+
+    <div class="admin-card">
+      <h3>🔤 字符集限制</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>提取码允许的字符</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px">
+              <input type="checkbox" id="extractCharsEn" checked> 英文 (a-z, A-Z)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px">
+              <input type="checkbox" id="extractCharsNum" checked> 数字 (0-9)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px">
+              <input type="checkbox" id="extractCharsZh"> 中文
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>自定义分享码允许的字符</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px">
+              <input type="checkbox" id="shareCharsEn" checked> 英文 (a-z, A-Z)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px">
+              <input type="checkbox" id="shareCharsNum" checked> 数字 (0-9)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:14px">
+              <input type="checkbox" id="shareCharsZh"> 中文
+            </label>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveCharsetSettings()" style="margin-top:12px">💾 保存字符集限制</button>
+    </div>
+  </section>
+
+  <section class="page-section" id="page-templates">
+    <h2 class="section-title">📝 模板编辑</h2>
+    <p class="section-desc">自定义各页面的 HTML 内容，保存后重启应用生效</p>
+
+    <div class="admin-card">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px" id="templateFileList">
+        <!-- Template file buttons will be rendered here -->
+      </div>
+
+      <div id="templateEditorArea" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 id="templateEditorTitle" style="color:#fff;font-size:16px;font-weight:600"></h3>
+          <span id="templateStatusBadge" style="font-size:12px;padding:3px 10px;border-radius:12px"></span>
+        </div>
+        <textarea id="templateEditor"
+          style="width:100%;min-height:500px;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:13px;line-height:1.5;padding:16px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(0,0,0,0.3);color:rgba(255,255,255,0.85);resize:vertical"
+          spellcheck="false"></textarea>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="saveTemplate()">💾 保存</button>
+          <button class="btn btn-secondary" onclick="resetTemplate()">↩️ 恢复默认</button>
+          <button class="btn btn-warning" onclick="restartApp()" style="margin-left:auto">🔄 重启应用</button>
+        </div>
+        <div id="templateStatus" style="margin-top:8px;font-size:13px;color:rgba(255,255,255,0.5)"></div>
+      </div>
+
+      <div id="templateEmptyHint" style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.3)">
+        <div style="font-size:48px;margin-bottom:12px">📝</div>
+        <div style="font-size:14px">点击上方模板文件名开始编辑</div>
+      </div>
+    </div>
+
+    <div class="admin-card" style="margin-top:16px">
+      <h3 style="color:#fff;font-size:14px;margin-bottom:8px">💡 提示</h3>
+      <ul style="color:rgba(255,255,255,0.5);font-size:12px;line-height:1.8;padding-left:16px">
+        <li>编辑后点击 <strong>💾 保存</strong>，然后点击 <strong>🔄 重启应用</strong> 使修改生效</li>
+        <li>如需恢复初始版本，点击 <strong>↩️ 恢复默认</strong></li>
+        <li style="margin-top:4px">⚠️ 请保持 <code style="background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px;font-size:12px">&lt;!--SHARE_DATA--&gt;</code> 和 <code style="background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px;font-size:12px">&lt;!--SETTINGS_DATA--&gt;</code> 等标记不被删除，否则页面可能无法正常显示</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══ Templates ═══ -->
+</div><!-- /dashboardLayout -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ════════════════════════════════════════
+   Admin Dashboard Script
+   ════════════════════════════════════════ */
+let TOKEN = '';
+let currentPage = 1;
+let sharePage = 1;
+let selectedFiles = [];
+let currentDir = '';
+let allShares = [];
+let cachedDomain = 'localhost:6606';
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Get token from hash
+  const hash = window.location.hash;
+  if (hash.startsWith('#token=')) {
+    TOKEN = hash.slice(7);
+    history.replaceState(null, '', '/admin');
+    sessionStorage.setItem('admin_token', TOKEN);
+    initAdmin();
+  } else {
+    TOKEN = sessionStorage.getItem('admin_token');
+    if (TOKEN) {
+      verifyAndInit();
+    } else {
+      // Show login screen (already visible by default)
+      document.getElementById('loginUsername').focus();
+    }
+  }
+});
+
+function verifyAndInit() {
+  fetch('/api/admin/verify', {
+    headers: { 'Authorization': 'Bearer ' + TOKEN }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.valid) {
+      sessionStorage.setItem('admin_token', TOKEN);
+      if (data.forceChange) {
+        showForceChangePwd();
+      } else {
+        initAdmin(data.username);
+      }
+    } else {
+      sessionStorage.removeItem('admin_token');
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('loginUsername').focus();
+    }
+  })
+  .catch(() => {
+    sessionStorage.removeItem('admin_token');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginUsername').focus();
+  });
+}
+
+function doLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginSubmitBtn');
+  const errEl = document.getElementById('loginError');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  errEl.style.display = 'none';
+
+  fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  })
+  .then(r => r.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.textContent = '登 录';
+    if (data.token) {
+      TOKEN = data.token;
+      sessionStorage.setItem('admin_token', TOKEN);
+      if (data.forceChange) {
+        showForceChangePwd();
+      } else {
+        initAdmin(username);
+      }
+    } else {
+      errEl.textContent = data.error || '登录失败';
+      errEl.style.display = 'block';
+    }
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = '登 录';
+    errEl.textContent = '网络错误，请重试';
+    errEl.style.display = 'block';
+  });
+}
+
+function initAdmin(username) {
+  // Hide login, show dashboard
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboardLayout').style.display = 'flex';
+  document.getElementById('adminUser').textContent = '👤 ' + (username || 'admin');
+
+  // Determine which page to show based on URL hash
+  var hash = (location.hash || '').replace(/^#\/?/, '');
+  var page = PAGE_HASH_MAP[hash] || 'dashboard';
+
+  // Preload all data in background
+  loadShares(1);
+  loadFileList();
+  loadSettings();
+  document.getElementById('currentUsername').value = username || 'admin';
+
+  // Navigate to the correct page (will trigger loadDashboard / loadShares etc.)
+  switchPageImpl(page, null);
+  // Ensure correct hash in URL bar
+  var targetHash = '';
+  for (var h in PAGE_HASH_MAP) {
+    if (PAGE_HASH_MAP[h] === page) { targetHash = h; break; }
+  }
+  if (!targetHash) targetHash = page;
+  if (location.hash !== '#/' + targetHash) {
+    history.replaceState(null, '', '#/' + targetHash);
+  }
+}
+
+function showLoading(show) {
+  let el = document.getElementById('loadingOverlay');
+  if (show) {
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'loadingOverlay';
+      el.className = 'loading-overlay';
+      el.innerHTML = '<div class="spinner"></div><span>加载中...</span>';
+      document.body.appendChild(el);
+    }
+    el.style.display = 'flex';
+  } else {
+    if (el) el.style.display = 'none';
+  }
+}
+
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  if (window.innerWidth <= 768) {
+    sb.classList.toggle('open');
+  } else {
+    sb.classList.toggle('collapsed');
+  }
+}
+function closeSidebarMobile() {
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+}
+
+// ── Hash-based routing ──
+const PAGE_HASH_MAP = {
+  'dashboard': 'dashboard',
+  'shares': 'shares',
+  'create': 'create',
+  'extract': 'extract',
+  'settings': 'settings',
+  'preview': 'preview',
+  'security': 'security',
+  'templates': 'templates'
+};
+
+function navigateTo(page, btn) {
+  // Find hash for this page
+  var hash = '';
+  for (var h in PAGE_HASH_MAP) {
+    if (PAGE_HASH_MAP[h] === page) { hash = h; break; }
+  }
+  if (!hash) hash = page;
+  // Update URL without reload
+  if (location.hash !== '#' + hash) {
+    history.pushState(null, '', '#/' + hash);
+  }
+  // Skip hashchange loop: just switch directly
+  switchPageImpl(page, btn);
+}
+
+function switchPageImpl(page, btn) {
+  document.querySelectorAll('.sidebar-nav button').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  else {
+    // Find button by data-page
+    var targetBtn = document.querySelector('.sidebar-nav button[data-page="' + page + '"]');
+    if (targetBtn) targetBtn.classList.add('active');
+  }
+  document.querySelectorAll('.page-section').forEach(function(s) { s.classList.remove('active'); });
+  var section = document.getElementById('page-' + page);
+  if (section) section.classList.add('active');
+  closeSidebarMobile();
+
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'shares') loadShares(sharePage);
+  if (page === 'create') loadFileList();
+  if (page === 'settings') loadSettings();
+  if (page === 'templates') loadTemplateList();
+}
+
+// Handle browser back/forward and direct URL navigation
+window.addEventListener('hashchange', function() {
+  var hash = (location.hash || '').replace(/^#\/?/, '');
+  var page = PAGE_HASH_MAP[hash] || 'dashboard';
+  switchPageImpl(page, null);
+});
+
+// Keep old switchPage for backwards compatibility (other code may call it)
+function switchPage(page, btn) {
+  navigateTo(page, btn);
+}
+
+/* ── API Helper ── */
+function api(path, options = {}) {
+  const headers = { 'Authorization': 'Bearer ' + TOKEN, ...options.headers };
+  if (options.body && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  return fetch(path, { ...options, headers }).then(r => r.json());
+}
+
+/* ── Toast ── */
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const el = document.createElement('div');
+    el.className = 'copy-feedback';
+    el.textContent = '✅ 已复制到剪贴板';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showToast('已复制', 'success');
+  });
+}
+
+/* ════════════════════════════════════════
+   EXTRACT
+   ════════════════════════════════════════ */
+function doExtract() {
+  const input = document.getElementById('extractShareInput').value.trim();
+  if (!input) { showToast('请输入分享链接或分享码', 'warning'); return; }
+
+  // Extract share code from link or use as-is
+  let code = input;
+  // Match /s/CODE or just CODE
+  const m = input.match(/\/s\/([a-zA-Z0-9_-]+)/);
+  if (m) code = m[1];
+  // Remove hash fragment
+  code = code.split('#')[0].trim();
+  if (!code || code.length < 4) { showToast('无效的分享码', 'error'); return; }
+
+  const resultDiv = document.getElementById('extractResult');
+  const errorDiv = document.getElementById('extractError');
+  errorDiv.style.display = 'none';
+  resultDiv.style.display = 'none';
+
+  showLoading(true);
+  api('/api/admin/share/extract/' + encodeURIComponent(code))
+    .then(data => {
+      showLoading(false);
+      if (data.error) {
+        errorDiv.style.display = 'block';
+        document.getElementById('extractErrorText').textContent = '❌ ' + data.error;
+        return;
+      }
+      resultDiv.style.display = 'block';
+
+      // Meta info
+      const meta = document.getElementById('extractMeta');
+      const expires = data.share.expiryDate
+        ? new Date(data.share.expiryDate).toLocaleString('zh-CN')
+        : '永久';
+      meta.innerHTML = `
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:8px">
+          <span>🔗 分享码: <strong style="color:#a3bffa;font-family:monospace">${data.share.code}</strong></span>
+          <span>⏰ 过期: ${expires}</span>
+          <span>👁️ 访问: ${data.share.visitCount || 0}${data.share.maxVisits ? '/' + data.share.maxVisits : ''}</span>
+          <span>📄 文件: ${data.files.length} 个</span>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn btn-sm btn-ghost" onclick="copyText('${data.share.link}')">📋 复制分享链接</button>
+        </div>`;
+
+      // Files
+      const filesContainer = document.getElementById('extractFiles');
+      if (data.files.length === 0) {
+        filesContainer.innerHTML = '<div class="empty-state"><p>此分享无文件</p></div>';
+        return;
+      }
+      filesContainer.innerHTML = data.files.map((f, i) => {
+        const icons = { image: '🖼️', video: '🎬', audio: '🎵', office: '📄', other: '📁' };
+        const icon = icons[f.type] || '📁';
+        let actions = `<a class="btn btn-sm btn-success" href="${f.downloadUrl}" download="${f.name}">⬇️ 下载</a>`;
+        if (f.type === 'image' || f.type === 'video' || f.type === 'audio') {
+          actions += `<a class="btn btn-sm btn-primary" href="${f.previewUrl}" target="_blank">👁️ 预览</a>`;
+        }
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:10px;flex-wrap:wrap">
+          <span style="font-size:20px">${icon}</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.85);font-size:14px">${f.name}</span>
+          <span style="color:rgba(255,255,255,0.4);font-size:12px;flex-shrink:0">${f.sizeFormatted}</span>
+          <span style="display:flex;gap:6px;flex-shrink:0">${actions}</span>
+        </div>`;
+      }).join('');
+    })
+    .catch(err => {
+      showLoading(false);
+      errorDiv.style.display = 'block';
+      document.getElementById('extractErrorText').textContent = '❌ 网络错误: ' + err.message;
+    });
+}
+
+/* ════════════════════════════════════════
+   DASHBOARD
+   ════════════════════════════════════════ */
+function loadDashboard() {
+  api('/api/admin/shares?page=1&pageSize=999').then(data => {
+    if (!data.items) return;
+    const shares = data.items;
+    const total = data.total;
+    const active = shares.filter(s => !s.isExpired && !s.isExhausted && !s.isDeleted).length;
+    const expired = shares.filter(s => s.isExpired || s.isExhausted || s.isDeleted).length;
+    const visits = shares.reduce((sum, s) => sum + (s.visitCount || 0), 0);
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statExpired').textContent = expired;
+    document.getElementById('statVisits').textContent = visits;
+
+    const recent = shares.slice(0, 5);
+    const container = document.getElementById('recentShares');
+    if (recent.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>暂无分享记录</p></div>';
+    } else {
+      container.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px">' +
+        recent.map(s => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-family:monospace;color:#a3bffa">${s.code}</span>
+              <span style="color:rgba(255,255,255,0.4);font-size:12px">${s.files.length} 个文件</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="color:rgba(255,255,255,0.4);font-size:12px">${s.visitCount || 0} 次访问</span>
+              <span class="badge ${s.isExpired||s.isExhausted||s.isDeleted?'badge-danger':'badge-success'}">${s.isExpired||s.isExhausted||s.isDeleted?'已失效':'有效'}</span>
+            </div>
+          </div>
+        `).join('') + '</div>';
+    }
+    // Load chart & calendar
+    loadVisitChart();
+    renderCalendar();
+  });
+}
+
+/* ════════════════════════════════════════
+   VISIT CHART & CALENDAR
+   ════════════════════════════════════════ */
+var visitChartDate = null;
+
+function loadVisitChart(date) {
+  var d = date || (new Date().getFullYear() + '-' +
+    String(new Date().getMonth() + 1).padStart(2,'0') + '-' +
+    String(new Date().getDate()).padStart(2,'0'));
+  visitChartDate = d;
+  var label = document.getElementById('visitChartDateLabel');
+  var today = new Date();
+  var td = today.getFullYear() + '-' +
+    String(today.getMonth() + 1).padStart(2,'0') + '-' +
+    String(today.getDate()).padStart(2,'0');
+  label.textContent = d === td ? '今日' : d;
+
+  api('/api/admin/visits?date=' + encodeURIComponent(d)).then(function(data) {
+    if (!data.hourly) return;
+    drawVisitChart(data.hourly);
+  });
+}
+
+function drawVisitChart(hourly) {
+  var canvas = document.getElementById('visitChartCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width;
+  var H = canvas.height;
+  var pad = { top: 20, right: 16, bottom: 28, left: 36 };
+  var chartW = W - pad.left - pad.right;
+  var chartH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Find max value
+  var maxVal = 1;
+  for (var i = 0; i < 24; i++) {
+    if (hourly[i] > maxVal) maxVal = hourly[i];
+  }
+  // Round up to nice number
+  var steps = 4;
+  var stepVal = Math.ceil(maxVal / steps);
+  if (stepVal < 1) stepVal = 1;
+  maxVal = stepVal * steps;
+
+  // Grid lines & Y axis labels
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.textAlign = 'right';
+  for (var s = 0; s <= steps; s++) {
+    var y = pad.top + chartH - (chartH * s / steps);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(W - pad.right, y);
+    ctx.stroke();
+    ctx.fillText(Math.round(maxVal * s / steps), pad.left - 6, y + 3);
+  }
+
+  // X axis labels (hours)
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '10px sans-serif';
+  for (var i = 0; i < 24; i++) {
+    var x = pad.left + (chartW * i / 23);
+    if (i % 3 === 0) {
+      ctx.fillText(i + ':00', x, H - pad.bottom + 16);
+    }
+  }
+
+  // Build points
+  var pts = [];
+  for (var i = 0; i < 24; i++) {
+    var x = pad.left + (chartW * i / 23);
+    var y = pad.top + chartH - (chartH * (hourly[i] || 0) / maxVal);
+    pts.push({ x: x, y: y });
+  }
+
+  // Draw filled area
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pad.top + chartH);
+  for (var i = 0; i < pts.length; i++) {
+    ctx.lineTo(pts[i].x, pts[i].y);
+  }
+  ctx.lineTo(pts[pts.length-1].x, pad.top + chartH);
+  ctx.closePath();
+  var grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+  grad.addColorStop(0, 'rgba(25,118,210,0.25)');
+  grad.addColorStop(1, 'rgba(25,118,210,0.02)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Draw smooth curve through points
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (var i = 0; i < pts.length - 1; i++) {
+    var p0 = pts[i];
+    var p1 = pts[i + 1];
+    var cp1x = p0.x + (p1.x - p0.x) / 2;
+    var cp1y = p0.y;
+    var cp2x = cp1x;
+    var cp2y = p1.y;
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p1.x, p1.y);
+  }
+  ctx.strokeStyle = '#64b5f6';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Draw dots
+  for (var i = 0; i < pts.length; i++) {
+    if (hourly[i] > 0) {
+      ctx.beginPath();
+      ctx.arc(pts[i].x, pts[i].y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#64b5f6';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
+}
+
+/* ── Calendar ── */
+var calendarYear = new Date().getFullYear();
+var calendarMonth = new Date().getMonth() + 1;
+var calendarDaily = {};
+
+function renderCalendar(year, month) {
+  if (year === undefined) year = calendarYear;
+  if (month === undefined) month = calendarMonth;
+  calendarYear = year;
+  calendarMonth = month;
+
+  var container = document.getElementById('visitCalendar');
+  if (!container) return;
+
+  // Load calendar data
+  api('/api/admin/visits/calendar?year=' + year + '&month=' + month).then(function(data) {
+    if (!data.daily) return;
+    calendarDaily = data.daily || {};
+    drawCalendar();
+  });
+}
+
+function drawCalendar() {
+  var container = document.getElementById('visitCalendar');
+  if (!container) return;
+  var year = calendarYear;
+  var month = calendarMonth;
+
+  var weekdays = ['日','一','二','三','四','五','六'];
+  var firstDay = new Date(year, month - 1, 1).getDay();
+  var daysInMonth = new Date(year, month, 0).getDate();
+
+  var today = new Date();
+  var todayStr = today.getFullYear() + '-' +
+    String(today.getMonth() + 1).padStart(2,'0') + '-' +
+    String(today.getDate()).padStart(2,'0');
+
+  var html = '<div class="calendar-header">' +
+    '<button class="calendar-nav-btn" onclick="calendarMonth--;if(calendarMonth<1){calendarMonth=12;calendarYear--}renderCalendar(calendarYear,calendarMonth)">‹</button>' +
+    '<span class="calendar-title">' + year + '年' + month + '月</span>' +
+    '<button class="calendar-nav-btn" onclick="calendarMonth++;if(calendarMonth>12){calendarMonth=1;calendarYear++}renderCalendar(calendarYear,calendarMonth)">›</button>' +
+    '</div>';
+
+  html += '<div class="calendar-grid">';
+  // Weekday headers
+  for (var w = 0; w < 7; w++) {
+    html += '<div class="calendar-weekday">' + weekdays[w] + '</div>';
+  }
+  // Empty cells before first day
+  for (var e = 0; e < firstDay; e++) {
+    html += '<div class="calendar-day empty"></div>';
+  }
+  // Day cells
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateStr = year + '-' + String(month).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var count = calendarDaily[dateStr] || 0;
+    var isToday = dateStr === todayStr;
+    var isActive = dateStr === visitChartDate;
+    html += '<div class="calendar-day' + (isActive ? ' active' : '') + (isToday ? ' today' : '') + '" onclick="selectCalendarDate(\'' + dateStr + '\')">' +
+      '<span class="day-num">' + d + '</span>' +
+      '<span class="day-count">' + (count > 0 ? count + '次' : '') + '</span>' +
+      '</div>';
+  }
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function selectCalendarDate(dateStr) {
+  loadVisitChart(dateStr);
+  // Re-render calendar to update active state
+  drawCalendar();
+}
+
+/* ════════════════════════════════════════
+   SHARES
+   ════════════════════════════════════════ */
+function loadShares(page) {
+  sharePage = page || 1;
+  showLoading(true);
+  api('/api/admin/shares?page=' + sharePage + '&pageSize=10').then(data => {
+    showLoading(false);
+    if (!data.items) { data = { items: [], total: 0, page: 1, totalPages: 0 }; }
+    allShares = data.items;
+    const tbody = document.getElementById('sharesBody');
+    const search = document.getElementById('shareSearch').value.toLowerCase();
+
+    let filtered = data.items;
+    if (search) filtered = data.items.filter(s => s.code.toLowerCase().includes(search));
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#fff">暂无分享记录</td></tr>';
+    } else {
+      tbody.innerHTML = filtered.map(s => {
+        const status = s.isExpired ? '<span class="badge badge-danger">已过期</span>'
+          : s.isExhausted ? '<span class="badge badge-warning">已达上限</span>'
+          : s.isDeleted ? '<span class="badge badge-danger">文件已删除</span>'
+          : '<span class="badge badge-success">有效</span>';
+        const expires = s.expiryDate ? new Date(s.expiryDate).toLocaleDateString('zh-CN') : '永久';
+        const files = s.files.map(f => f.name).join(', ');
+        return `<tr>
+          <td style="font-family:monospace;font-size:13px;color:#a3bffa">${s.code}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${files}">${files}</td>
+          <td>${s.extractCode || '<span style="color:rgba(255,255,255,0.3)">无</span>'}</td>
+          <td style="font-size:12px">${expires}</td>
+          <td>${s.visitCount || 0}${s.maxVisits ? '/' + s.maxVisits : ''}</td>
+          <td>${status}</td>
+          <td>
+            <div class="table-actions">
+              <button onclick="copyShareLink('${s.code}', '${s.extractCode || ''}')" title="复制链接">📋</button>
+              <button onclick="editShare('${s.id}')" title="编辑">✏️</button>
+              <button class="danger" onclick="deleteShare('${s.id}')" title="删除">🗑️</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Pagination
+    const pag = document.getElementById('sharesPagination');
+    if (data.totalPages <= 1) {
+      pag.innerHTML = '';
+    } else {
+      let html = `<button onclick="loadShares(1)" ${sharePage===1?'disabled':''}>首页</button>`;
+      html += `<button onclick="loadShares(${sharePage-1})" ${sharePage===1?'disabled':''}>‹</button>`;
+      html += `<span class="page-info">${sharePage} / ${data.totalPages}</span>`;
+      html += `<button onclick="loadShares(${sharePage+1})" ${sharePage>=data.totalPages?'disabled':''}>›</button>`;
+      html += `<button onclick="loadShares(${data.totalPages})" ${sharePage>=data.totalPages?'disabled':''}>末页</button>`;
+      pag.innerHTML = html;
+    }
+  }).catch(() => {
+    showLoading(false);
+    showToast('加载分享记录失败，请检查网络', 'error');
+  });
+}
+
+function copyShareLink(code, extractCode) {
+  let link = 'https://' + cachedDomain + '/s/' + code;
+  if (extractCode) link += '#' + encodeURIComponent(extractCode);
+  copyText(link);
+}
+
+function deleteShare(id) {
+  showConfirm('删除确认', '确认删除此分享记录？', function() {
+    api('/api/admin/share/' + id, { method: 'DELETE' }).then(function(data) {
+      if (data.success) { showToast('已删除', 'success'); loadShares(sharePage); loadDashboard(); }
+      else showToast(data.error || '删除失败', 'error');
+    });
+  });
+}
+
+function editShare(id) {
+  const s = allShares.find(x => x.id === id);
+  if (!s) return;
+  var editCode = s.extractCode || '';
+  var editExpiry = s.expiryDate || '';
+  var editMax = s.maxVisits || '0';
+  showModal({
+    title: '编辑分享',
+    body: '修改分享配置：',
+    confirm: '保存',
+    cancel: '取消',
+    html: '<div style="margin-bottom:12px"><label style="font-size:12px;color:rgba(255,255,255,0.4);display:block;margin-bottom:4px">提取码（留空无提取码）</label><input class="modal-input" id="editCodeInput" value="' + escHtml(editCode) + '"></div><div style="margin-bottom:12px"><label style="font-size:12px;color:rgba(255,255,255,0.4);display:block;margin-bottom:4px">过期时间（留空则永久有效）</label><input class="modal-input" id="editExpiryInput" type="datetime-local" value="' + escHtml(editExpiry) + '"></div><div style="margin-bottom:12px"><label style="font-size:12px;color:rgba(255,255,255,0.4);display:block;margin-bottom:4px">最大访问次数（0 不限）</label><input class="modal-input" id="editMaxInput" value="' + escHtml(editMax) + '"></div>',
+    onConfirm: function() {
+      var code = document.getElementById('editCodeInput').value.trim();
+      var expiry = document.getElementById('editExpiryInput').value.trim();
+      var maxVis = parseInt(document.getElementById('editMaxInput').value.trim()) || 0;
+      api('/api/admin/share/' + id, {
+        method: 'PATCH',
+        body: JSON.stringify({ extractCode: code, expiryDate: expiry, maxVisits: maxVis })
+      }).then(function(data) {
+        if (data.success) { showToast('已更新', 'success'); loadShares(sharePage); }
+        else showToast(data.error || '更新失败', 'error');
+      });
+    }
+  });
+  // Focus first input
+  setTimeout(function() { var el = document.getElementById('editCodeInput'); if (el) el.focus(); }, 150);
+}
+
+function cleanupShares() {
+  showConfirm('清理确认', '确认一键清理所有已过期或已达访问上限的分享？', function() {
+    showLoading(true);
+    api('/api/admin/shares/cleanup', { method: 'POST' }).then(function(data) {
+      showLoading(false);
+      if (data.success) {
+        showToast("已清理 " + data.removed + " 条失效记录，剩余 " + data.remaining + " 条", 'success');
+        loadShares(1);
+        loadDashboard();
+      } else {
+        showToast(data.error || '清理失败', 'error');
+      }
+    });
+  });
+}
+
+/* ════════════════════════════════════════
+   FILE BROWSER & CREATE
+   ════════════════════════════════════════ */
+function loadFileList(dir) {
+  if (dir !== undefined) currentDir = dir;
+  showLoading(true);
+  const path = currentDir ? '?path=' + encodeURIComponent(currentDir) : '';
+  api('/api/admin/files' + path).then(data => {
+    showLoading(false);
+    if (data.error) {
+      document.getElementById('fileTree').innerHTML = `<div class="empty-state"><p>${data.error}</p></div>`;
+      return;
+    }
+    document.getElementById('currentPath').textContent = data.currentPath;
+    renderFileList(data.files);
+  }).catch(() => {
+    showLoading(false);
+    showToast('加载文件列表失败', 'error');
+  });
+}
+
+function renderFileList(files) {
+  const container = document.getElementById('fileTree');
+  if (!files || files.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>此目录为空</p></div>';
+    return;
+  }
+
+  container.innerHTML = files.map((f, idx) => {
+    const isSelected = selectedFiles.includes(f.path);
+    const icon = f.isDir ? '📁' : getIcon(f.name);
+    const fileId = 'f_' + idx;
+    if (f.isDir) {
+      return `<div class="file-item ${isSelected ? 'selected' : ''}" onclick="openDir('${f.path}')">
+        <input type="checkbox" class="checkbox" id="${fileId}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleFile('${f.path}', this.parentElement)">
+        <label class="name" style="cursor:default;flex:1;display:flex;align-items:center;gap:6px;overflow:hidden">
+          ${icon} ${f.name}
+        </label>
+        <span class="size">${f.sizeFormatted}</span>
+      </div>`;
+    }
+    return `<div class="file-item ${isSelected ? 'selected' : ''}" onclick="toggleFile('${f.path}', this)">
+      <input type="checkbox" class="checkbox" id="${fileId}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation()" onchange="toggleFile('${f.path}', this.parentElement)">
+      <label class="name" for="${fileId}" onclick="event.stopPropagation()" style="cursor:pointer;flex:1;display:flex;align-items:center;gap:6px;overflow:hidden">
+        ${icon} ${f.name}
+      </label>
+      <span class="size">${f.sizeFormatted}</span>
+    </div>`;
+  }).join('');
+  updateSelectedCount();
+}
+
+function getIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) return '🖼️';
+  if (['mp4','webm','mov','avi','mkv'].includes(ext)) return '🎬';
+  if (['mp3','wav','ogg','flac','m4a'].includes(ext)) return '🎵';
+  if (['doc','docx'].includes(ext)) return '📝';
+  if (['xls','xlsx'].includes(ext)) return '📊';
+  if (['ppt','pptx'].includes(ext)) return '📽️';
+  if (['pdf'].includes(ext)) return '📕';
+  if (['zip','rar','7z','tar','gz'].includes(ext)) return '🗜️';
+  if (['js','ts','py','java','c','cpp','go','rs'].includes(ext)) return '💻';
+  return '📄';
+}
+
+function openDir(path) {
+  currentDir = path;
+  loadFileList();
+}
+
+function goUpDir() {
+  if (!currentDir || currentDir === '/') return;
+  const parts = currentDir.split('/').filter(Boolean);
+  parts.pop();
+  currentDir = parts.join('/');
+  loadFileList();
+}
+
+function refreshFileList() {
+  loadFileList();
+}
+
+function toggleFile(path, el) {
+  const idx = selectedFiles.indexOf(path);
+  if (idx >= 0) {
+    selectedFiles.splice(idx, 1);
+  } else {
+    selectedFiles.push(path);
+  }
+  updateSelectedCount();
+  if (el) {
+    const isSel = selectedFiles.includes(path);
+    el.classList.toggle('selected', isSel);
+    const cb = el.querySelector('.checkbox');
+    if (cb) cb.checked = isSel;
+  }
+}
+
+function clearSelection() {
+  selectedFiles = [];
+  updateSelectedCount();
+  loadFileList();
+}
+
+function updateSelectedCount() {
+  document.getElementById('selectedCount').textContent = selectedFiles.length;
+}
+
+function createShare() {
+  if (selectedFiles.length === 0) {
+    showToast('请先选择文件', 'warning');
+    return;
+  }
+
+  const customCode = document.getElementById('newCustomCode').value.trim();
+  const extractCode = document.getElementById('newExtractCode').value.trim();
+  const expiryDate = document.getElementById('newExpiryDate').value;
+  const maxVisits = document.getElementById('newMaxVisits').value;
+  const topHint = document.getElementById('newTopHint').value.trim();
+  const bottomHint = document.getElementById('newBottomHint').value.trim();
+  const appendCode = document.getElementById('appendCodeCheck').checked;
+  const showNotification = document.getElementById('newShowNotification').checked;
+
+  const btn = document.getElementById('createShareBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 创建中...';
+
+  api('/api/admin/share/create', {
+    method: 'POST',
+    body: JSON.stringify({
+      filePaths: selectedFiles,
+      customCode: customCode || undefined,
+      extractCode: extractCode || '',
+      expiryDate: expiryDate || '',
+      maxVisits: parseInt(maxVisits) || 0,
+      topHint,
+      bottomHint,
+      appendCode,
+      showNotification
+    })
+  }).then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '✨ 生成分享链接';
+    if (data.success) {
+      document.getElementById('shareResultCard').style.display = 'block';
+      document.getElementById('shareResultLink').value = data.share.link;
+      showToast('分享链接已生成！', 'success');
+      // Auto-copy to clipboard
+      copyText(data.share.link);
+      // Clear form
+      selectedFiles = [];
+      updateSelectedCount();
+      loadFileList();
+    } else {
+      showToast(data.error || '创建失败', 'error');
+    }
+  }).catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '✨ 生成分享链接';
+    showToast('请求失败: ' + (err.message || '网络错误'), 'error');
+  });
+}
+
+function copyResultLink() {
+  const link = document.getElementById('shareResultLink').value;
+  copyText(link);
+}
+
+/* ════════════════════════════════════════
+   SHARED DIRECTORY SETUP
+   ════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   SETTINGS
+   ════════════════════════════════════════ */
+function loadSettings() {
+  api('/api/admin/settings').then(data => {
+    if (data.error) return;
+    document.getElementById('setSiteName').value = data.siteName || '';
+    document.getElementById('setAnnouncement').value = data.announcement || '';
+    document.getElementById('setFooter').value = data.footer || '';
+    document.getElementById('setScanRoot').value = data.scanRootPath || '';
+    document.getElementById('setDomain').value = data.domain || '';
+    cachedDomain = data.domain || 'localhost:6606';
+    document.getElementById('setPreviewExts').value = data.preview_extensions || '';
+    document.getElementById('setKkfileviewUrl').value = data.kkfileview_url || '';
+    document.getElementById('setPreviewMode').value = data.preview_mode || 'system';
+    toggleKkfileview();
+
+    // Notification settings
+    document.getElementById('setNotificationTitle').value = data.notification_title || '欢迎访问 ' + (data.siteName || '文件分享');
+    document.getElementById('setNotificationContent').value = data.notification_content || '感谢您访问本分享，请按需下载文件。';
+    document.getElementById('setNotificationWaitTime').value = data.notification_wait_time || '0';
+
+    // Background preview
+    if (data.backgroundImage) {
+      const wrap = document.getElementById('bgPreviewWrap');
+      wrap.style.display = 'block';
+      document.getElementById('bgPreview').src = data.backgroundImage;
+      document.getElementById('removeBgBtn').style.display = '';
+    }
+  });
+
+  // Load captcha settings
+  api('/api/admin/captcha-settings').then(data => {
+    if (data.error) return;
+    if (data.type) document.getElementById('setCaptchaType').value = data.type;
+    if (data.length) document.getElementById('setCaptchaLen').value = data.length;
+    updateCaptchaLenLabel();
+    if (data.length) document.getElementById('setCaptchaLen').value = data.length; // re-apply after options rebuild
+    const enabled = data.enabled !== 'false';
+    updateCaptchaBtn(enabled);
+    // Load scope toggles
+    updateCaptchaScopeBtn('extract', data.onExtract !== 'false');
+    updateCaptchaScopeBtn('download', data.onDownload !== 'false');
+  });
+
+  // Load security settings
+  loadSecuritySettings();
+}
+
+/* ── Captcha helpers ── */
+var captchaEnabled = true;
+
+function updateCaptchaLenLabel() {
+  const type = document.getElementById('setCaptchaType').value;
+  const label = document.getElementById('captchaLenLabel');
+  const group = document.getElementById('captchaLenGroup');
+  if (type === 'arithmetic') {
+    label.textContent = '运算位数';
+    group.style.display = 'block';
+    const sel = document.getElementById('setCaptchaLen');
+    sel.innerHTML = '<option value="1">1 位</option><option value="2">2 位</option><option value="3">3 位</option>';
+  } else {
+    label.textContent = '字符位数';
+    group.style.display = 'block';
+    const sel = document.getElementById('setCaptchaLen');
+    sel.innerHTML = '<option value="4">4 位</option><option value="5">5 位</option><option value="6">6 位</option><option value="7">7 位</option><option value="8">8 位</option>';
+  }
+}
+
+function updateCaptchaBtn(enabled) {
+  captchaEnabled = enabled;
+  const btn = document.getElementById('setCaptchaToggleBtn');
+  const extra = document.getElementById('captchaExtraSettings');
+  if (enabled) {
+    btn.style.background = '#1976d2';
+    btn.textContent = '✅ 已开启';
+    if (extra) {
+      extra.style.display = 'block';
+      extra.style.opacity = '0';
+      setTimeout(function() { extra.style.opacity = '1'; }, 10);
+    }
+  } else {
+    btn.style.background = 'rgba(255,255,255,0.15)';
+    btn.textContent = '⛔ 已关闭';
+    if (extra) {
+      extra.style.opacity = '0';
+      setTimeout(function() { extra.style.display = 'none'; }, 300);
+    }
+  }
+}
+
+function toggleCaptcha() {
+  updateCaptchaBtn(!captchaEnabled);
+}
+
+var captchaOnExtract = true;
+var captchaOnDownload = true;
+
+function updateCaptchaScopeBtn(scope, enabled) {
+  if (scope === 'extract') {
+    captchaOnExtract = enabled;
+    const btn = document.getElementById('setCaptchaExtractBtn');
+    if (enabled) {
+      btn.style.background = '#1976d2';
+      btn.textContent = '✅ 已开启';
+    } else {
+      btn.style.background = 'rgba(255,255,255,0.15)';
+      btn.textContent = '⛔ 已关闭';
+    }
+  } else {
+    captchaOnDownload = enabled;
+    const btn = document.getElementById('setCaptchaDownloadBtn');
+    if (enabled) {
+      btn.style.background = '#1976d2';
+      btn.textContent = '✅ 已开启';
+    } else {
+      btn.style.background = 'rgba(255,255,255,0.15)';
+      btn.textContent = '⛔ 已关闭';
+    }
+  }
+}
+
+function toggleCaptchaScope(scope) {
+  if (scope === 'extract') {
+    updateCaptchaScopeBtn('extract', !captchaOnExtract);
+  } else {
+    updateCaptchaScopeBtn('download', !captchaOnDownload);
+  }
+}
+
+function toggleKkfileview() {
+  var mode = document.getElementById('setPreviewMode').value;
+  var group = document.getElementById('kkfileviewGroup');
+  group.style.display = (mode === 'custom') ? '' : 'none';
+}
+
+// Wire up captcha type change
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'setCaptchaType') updateCaptchaLenLabel();
+});
+
+function uploadBg() {
+  const file = document.getElementById('bgUploadInput').files[0];
+  if (!file) { showToast('请选择图片', 'warning'); return; }
+
+  const form = new FormData();
+  form.append('bg', file);
+
+  showLoading(true);
+  fetch('/api/admin/upload/bg', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + TOKEN },
+    body: form
+  })
+  .then(r => r.json())
+  .then(data => {
+    showLoading(false);
+    if (data.success) {
+      showToast('背景图上传成功', 'success');
+      const wrap = document.getElementById('bgPreviewWrap');
+      wrap.style.display = 'block';
+      document.getElementById('bgPreview').src = data.url + '?t=' + Date.now();
+      document.getElementById('removeBgBtn').style.display = '';
+    } else {
+      showToast(data.error || '上传失败', 'error');
+    }
+  })
+  .catch(() => { showLoading(false); showToast('上传失败', 'error'); });
+}
+
+function removeBg() {
+  api('/api/admin/settings', {
+    method: 'PUT',
+    body: JSON.stringify({ backgroundImage: '' })
+  }).then(data => {
+    if (data.success) {
+      document.getElementById('bgPreviewWrap').style.display = 'none';
+      document.getElementById('removeBgBtn').style.display = 'none';
+      showToast('背景图已移除', 'success');
+    }
+  });
+}
+
+function saveSettings() {
+  const settings = {
+    siteName: document.getElementById('setSiteName').value.trim(),
+    announcement: document.getElementById('setAnnouncement').value.trim(),
+    footer: document.getElementById('setFooter').value.trim(),
+    scanRootPath: document.getElementById('setScanRoot').value.trim(),
+    domain: document.getElementById('setDomain').value.trim(),
+    preview_extensions: document.getElementById('setPreviewExts').value.trim(),
+    kkfileview_url: document.getElementById('setKkfileviewUrl').value.trim(),
+    notification_title: document.getElementById('setNotificationTitle').value.trim(),
+    notification_content: document.getElementById('setNotificationContent').value.trim(),
+    notification_wait_time: parseInt(document.getElementById('setNotificationWaitTime').value) || 0
+  };
+
+  const previewMode = document.getElementById('setPreviewMode').value;
+  settings.preview_mode = previewMode;
+
+  showLoading(true);
+
+  // Save general settings
+  api('/api/admin/settings', {
+    method: 'PUT',
+    body: JSON.stringify(settings)
+  }).then(data => {
+    if (!data.success) {
+      showLoading(false);
+      showToast(data.error || '保存失败', 'error');
+      return;
+    }
+
+    // Save captcha settings
+    const captchaSettings = {
+      type: document.getElementById('setCaptchaType').value,
+      length: document.getElementById('setCaptchaLen').value,
+      enabled: captchaEnabled,
+      onExtract: captchaOnExtract,
+      onDownload: captchaOnDownload
+    };
+
+    api('/api/admin/captcha-settings', {
+      method: 'PUT',
+      body: JSON.stringify(captchaSettings)
+    }).then(data2 => {
+      showLoading(false);
+      if (data2.success) showToast('设置已保存', 'success');
+      else showToast(data2.error || '保存失败', 'error');
+    });
+  });
+}
+
+/* ════════════════════════════════════════
+   SECURITY SETTINGS TOGGLES
+   ════════════════════════════════════════ */
+var secToggles = { rateLimitShare: true, rateLimitVerify: true, rateLimitLogin: true };
+
+function toggleSetting(name) {
+  secToggles[name] = !secToggles[name];
+  var btn = document.getElementById('set' + name.charAt(0).toUpperCase() + name.slice(1) + 'Btn');
+  var extra = document.getElementById('set' + name.charAt(0).toUpperCase() + name.slice(1) + 'Extra');
+  if (secToggles[name]) {
+    btn.style.background = '#1976d2';
+    btn.textContent = '✅ 已开启';
+    if (extra) { extra.style.display = 'block'; }
+  } else {
+    btn.style.background = 'rgba(255,255,255,0.15)';
+    btn.textContent = '⛔ 已关闭';
+    if (extra) { extra.style.display = 'none'; }
+  }
+}
+
+function loadSecuritySettings() {
+  api('/api/admin/security-settings').then(data => {
+    if (data.error) return;
+    // Rate limit toggles
+    setToggleUI('rateLimitShare', data.rateLimitShareEnabled !== 'false');
+    setToggleUI('rateLimitVerify', data.rateLimitVerifyEnabled !== 'false');
+    setToggleUI('rateLimitLogin', data.rateLimitLoginEnabled !== 'false');
+
+    if (data.rateLimitShareMax) document.getElementById('setRateLimitShareMax').value = parseInt(data.rateLimitShareMax);
+    if (data.rateLimitVerifyMax) document.getElementById('setRateLimitVerifyMax').value = parseInt(data.rateLimitVerifyMax);
+    if (data.rateLimitLoginMax) document.getElementById('setRateLimitLoginMax').value = parseInt(data.rateLimitLoginMax);
+    if (data.batchDownloadLimit) document.getElementById('setBatchDownloadLimit').value = parseInt(data.batchDownloadLimit);
+    if (data.extractMaxLength) document.getElementById('setExtractMaxLength').value = parseInt(data.extractMaxLength);
+    if (data.shareCodeMaxLength) document.getElementById('setShareCodeMaxLength').value = parseInt(data.shareCodeMaxLength);
+
+    // Char sets
+    var ec = (data.extractChars || 'en,num').split(',');
+    document.getElementById('extractCharsEn').checked = ec.indexOf('en') !== -1;
+    document.getElementById('extractCharsNum').checked = ec.indexOf('num') !== -1;
+    document.getElementById('extractCharsZh').checked = ec.indexOf('zh') !== -1;
+
+    var sc = (data.shareChars || 'en,num').split(',');
+    document.getElementById('shareCharsEn').checked = sc.indexOf('en') !== -1;
+    document.getElementById('shareCharsNum').checked = sc.indexOf('num') !== -1;
+    document.getElementById('shareCharsZh').checked = sc.indexOf('zh') !== -1;
+  });
+}
+
+function setToggleUI(name, enabled) {
+  secToggles[name] = enabled;
+  var btn = document.getElementById('set' + name.charAt(0).toUpperCase() + name.slice(1) + 'Btn');
+  var extra = document.getElementById('set' + name.charAt(0).toUpperCase() + name.slice(1) + 'Extra');
+  if (enabled) {
+    btn.style.background = '#1976d2';
+    btn.textContent = '✅ 已开启';
+    if (extra) extra.style.display = 'block';
+  } else {
+    btn.style.background = 'rgba(255,255,255,0.15)';
+    btn.textContent = '⛔ 已关闭';
+    if (extra) extra.style.display = 'none';
+  }
+}
+
+function saveRateLimitSettings() {
+  var settings = {
+    rateLimitShareEnabled: secToggles.rateLimitShare,
+    rateLimitShareMax: parseInt(document.getElementById('setRateLimitShareMax').value) || 20,
+    rateLimitVerifyEnabled: secToggles.rateLimitVerify,
+    rateLimitVerifyMax: parseInt(document.getElementById('setRateLimitVerifyMax').value) || 40,
+    rateLimitLoginEnabled: secToggles.rateLimitLogin,
+    rateLimitLoginMax: parseInt(document.getElementById('setRateLimitLoginMax').value) || 5
+  };
+
+  showLoading(true);
+  api('/api/admin/security-settings', {
+    method: 'PUT',
+    body: JSON.stringify(settings)
+  }).then(data => {
+    showLoading(false);
+    if (data.success) showToast('速率限制已保存', 'success');
+    else showToast(data.error || '保存失败', 'error');
+  }).catch(function(e) {
+    showLoading(false);
+    console.error('RateLimit save error:', e);
+    showToast('网络错误: ' + (e.message || '请检查登录状态'), 'error');
+  });
+}
+
+function saveInputLimitSettings() {
+  var settings = {
+    batchDownloadLimit: parseInt(document.getElementById('setBatchDownloadLimit').value) || 100,
+    extractMaxLength: parseInt(document.getElementById('setExtractMaxLength').value) || 64,
+    shareCodeMaxLength: parseInt(document.getElementById('setShareCodeMaxLength').value) || 32
+  };
+
+  showLoading(true);
+  api('/api/admin/security-settings', {
+    method: 'PUT',
+    body: JSON.stringify(settings)
+  }).then(data => {
+    showLoading(false);
+    if (data.success) showToast('输入限制已保存', 'success');
+    else showToast(data.error || '保存失败', 'error');
+  }).catch(function(e) {
+    showLoading(false);
+    console.error('InputLimit save error:', e);
+    showToast('网络错误: ' + (e.message || '请检查登录状态'), 'error');
+  });
+}
+
+function saveCharsetSettings() {
+  var chars = function(enId, numId, zhId) {
+    var parts = [];
+    if (document.getElementById(enId).checked) parts.push('en');
+    if (document.getElementById(numId).checked) parts.push('num');
+    if (document.getElementById(zhId).checked) parts.push('zh');
+    return parts.join(',');
+  };
+
+  var settings = {
+    extractChars: chars('extractCharsEn', 'extractCharsNum', 'extractCharsZh'),
+    shareChars: chars('shareCharsEn', 'shareCharsNum', 'shareCharsZh')
+  };
+
+  showLoading(true);
+  api('/api/admin/security-settings', {
+    method: 'PUT',
+    body: JSON.stringify(settings)
+  }).then(data => {
+    showLoading(false);
+    if (data.success) showToast('字符集限制已保存', 'success');
+    else showToast(data.error || '保存失败', 'error');
+  }).catch(function(e) {
+    showLoading(false);
+    showToast('网络错误: ' + (e.message || e), 'error');
+  });
+}
+
+/* ════════════════════════════════════════
+   SECURITY
+   ════════════════════════════════════════ */
+/* ── Forced password change (default credentials) ── */
+function showForceChangePwd() {
+  document.getElementById('forceChangePwdOverlay').style.display = 'flex';
+  document.getElementById('forceNewPwd').value = '';
+  document.getElementById('forceNewPwd2').value = '';
+  document.getElementById('forceChangePwdError').style.display = 'none';
+  setTimeout(() => document.getElementById('forceNewPwd').focus(), 200);
+}
+
+function submitForceChangePwd() {
+  const pwd = document.getElementById('forceNewPwd').value;
+  const confirm = document.getElementById('forceNewPwd2').value;
+  const errEl = document.getElementById('forceChangePwdError');
+  const btn = document.getElementById('forceChangePwdBtn');
+
+  if (!pwd || pwd.length < 6) {
+    errEl.textContent = '密码至少 6 位';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pwd !== confirm) {
+    errEl.textContent = '两次密码输入不一致';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pwd === 'admin123') {
+    errEl.textContent = '新密码不能与初始密码相同';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '修改中...';
+  errEl.style.display = 'none';
+
+  api('/api/admin/password', {
+    method: 'PUT',
+    body: JSON.stringify({ oldPassword: 'admin123', newPassword: pwd })
+  }).then(data => {
+    btn.disabled = false;
+    btn.textContent = '🔒 修改密码并进入';
+    if (data.success) {
+      document.getElementById('forceChangePwdOverlay').style.display = 'none';
+      // Clear old token and re-login silently with new password
+      sessionStorage.removeItem('admin_token');
+      fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'admin', password: pwd })
+      })
+      .then(r => r.json())
+      .then(loginData => {
+        if (loginData.token) {
+          TOKEN = loginData.token;
+          sessionStorage.setItem('admin_token', TOKEN);
+          initAdmin('admin');
+        }
+      });
+    } else {
+      errEl.textContent = data.error || '修改失败';
+      errEl.style.display = 'block';
+    }
+  });
+}
+
+function changePassword() {
+  const oldPw = document.getElementById('oldPassword').value;
+  const newPw = document.getElementById('newPassword').value;
+  const confirmPw = document.getElementById('confirmPassword').value;
+
+  if (!oldPw || !newPw) { showToast('请填写完整', 'warning'); return; }
+  if (newPw.length < 6) { showToast('新密码至少6位', 'warning'); return; }
+  if (newPw !== confirmPw) { showToast('两次密码不一致', 'warning'); return; }
+
+  showLoading(true);
+  api('/api/admin/password', {
+    method: 'PUT',
+    body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
+  }).then(data => {
+    showLoading(false);
+    if (data.success) {
+      showToast('密码已修改', 'success');
+      document.getElementById('oldPassword').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmPassword').value = '';
+    } else {
+      showToast(data.error || '修改失败', 'error');
+    }
+  });
+}
+
+/* ════════════════════════════════════════
+   USERNAME
+   ════════════════════════════════════════ */
+function changeUsername() {
+  const newName = document.getElementById('newUsername').value.trim();
+  const password = document.getElementById('changeNamePassword').value;
+  if (!newName) { showToast('请输入新用户名', 'warning'); return; }
+  if (!password) { showToast('请输入当前密码', 'warning'); return; }
+
+  showLoading(true);
+  api('/api/admin/username', {
+    method: 'PUT',
+    body: JSON.stringify({ newUsername: newName, password })
+  }).then(data => {
+    showLoading(false);
+    if (data.success) {
+      showToast('用户名已修改', 'success');
+      document.getElementById('currentUsername').value = newName;
+      document.getElementById('newUsername').value = '';
+      document.getElementById('changeNamePassword').value = '';
+      document.getElementById('adminUser').textContent = '👤 ' + newName;
+      // Update stored token
+      if (data.token) {
+        TOKEN = data.token;
+        sessionStorage.setItem('admin_token', TOKEN);
+      }
+    } else {
+      showToast(data.error || '修改失败', 'error');
+    }
+  });
+}
+
+/* ════════════════════════════════════════
+   LOGOUT
+   ════════════════════════════════════════ */
+function logout() {
+  showConfirm('确认退出', '确定要退出登录吗？', function() {
+    sessionStorage.removeItem('admin_token');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('dashboardLayout').style.display = 'none';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginUsername').focus();
+  });
+}
+
+/* ── Helpers ── */
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+}
+
+/* ── Glass Modal ── */
+function showModal(config) {
+  var overlay = document.getElementById('glassModal');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'glassModal';
+    overlay.innerHTML = '<div class="modal-box"><div class="modal-title" id="modalTitle"></div><div class="modal-body" id="modalBody"></div><div id="modalExtra"></div><div class="modal-actions" id="modalActions"></div></div>';
+    overlay.onclick = function(e) { if (e.target === overlay && config.closable !== false) hideModal(); };
+    document.body.appendChild(overlay);
+  }
+  document.getElementById('modalTitle').textContent = config.title || '';
+  document.getElementById('modalBody').textContent = config.body || '';
+  if (config.html) {
+    document.getElementById('modalBody').innerHTML = config.html;
+  }
+  var extra = document.getElementById('modalExtra');
+  extra.innerHTML = '';
+  if (config.input) {
+    var inp = document.createElement('input');
+    inp.className = 'modal-input';
+    inp.type = 'text';
+    inp.value = config.input.value || '';
+    inp.placeholder = config.input.placeholder || '';
+    inp.id = 'modalInput';
+    extra.appendChild(inp);
+    setTimeout(function() { inp.focus(); inp.select(); }, 100);
+  }
+  var actions = document.getElementById('modalActions');
+  actions.innerHTML = '';
+  if (config.cancel) {
+    var btnCancel = document.createElement('button');
+    btnCancel.className = 'modal-btn modal-btn-ghost';
+    btnCancel.textContent = config.cancel;
+    btnCancel.onclick = function() { hideModal(); };
+    actions.appendChild(btnCancel);
+  }
+  if (config.confirm) {
+    var btnConfirm = document.createElement('button');
+    btnConfirm.className = 'modal-btn ' + (config.danger ? 'modal-btn-danger' : 'modal-btn-primary');
+    btnConfirm.textContent = config.confirm;
+    btnConfirm.onclick = function() {
+      var val = config.input ? document.getElementById('modalInput').value : true;
+      hideModal();
+      if (config.onConfirm) config.onConfirm(val);
+    };
+    actions.appendChild(btnConfirm);
+    setTimeout(function() { btnConfirm.focus(); }, 150);
+  }
+  overlay.classList.add('show');
+}
+
+function hideModal() {
+  var overlay = document.getElementById('glassModal');
+  if (overlay) overlay.classList.remove('show');
+}
+
+function showConfirm(title, body, onConfirm) {
+  showModal({ title: title, body: body, confirm: '确定', cancel: '取消', onConfirm: onConfirm });
+}
+
+function showPrompt(title, body, defaultValue, placeholder, onConfirm) {
+  showModal({ title: title, body: body, input: { value: defaultValue, placeholder: placeholder }, confirm: '确定', cancel: '取消', onConfirm: onConfirm });
+}
+
+/* ── Template Editor ── */
+let currentTemplate = null;
+
+function loadTemplateList() {
+  api("/api/admin/templates").then(function(data) {
+    if (!data.success) return;
+    var container = document.getElementById("templateFileList");
+    container.innerHTML = "";
+    data.pages.forEach(function(tpl) {
+      var badge = tpl.overridden ? "已修改" : "原始";
+      var badgeClass = tpl.overridden ? "tpl-badge" : "tpl-badge original";
+      var btn = document.createElement("button");
+      btn.className = "tpl-btn" + (currentTemplate === tpl.name ? " active" : "");
+      btn.innerHTML = getTemplateDisplayName(tpl.name) + " <span class=\"" + badgeClass + "\">" + badge + "</span>";
+      btn.onclick = (function(n) { return function() { openTemplate(n); }; })(tpl.name);
+      if (currentTemplate === tpl.name) btn.classList.add("active");
+      container.appendChild(btn);
+    });
+  });
+}
+
+
+function getTemplateDisplayName(name) {
+  var names = {
+    "share.html": "分享页面",
+    "404.html": "404 页面"
+  };
+  return names[name] || name;
+}
+
+function openTemplate(name) {
+  currentTemplate = name;
+  document.getElementById("templateEmptyHint").style.display = "none";
+  document.getElementById("templateEditorArea").style.display = "block";
+  document.getElementById("templateEditorTitle").textContent = "📝 " + getTemplateDisplayName(name);
+  document.getElementById("templateStatus").textContent = "加载中…";
+  document.getElementById("templateEditor").disabled = true;
+  
+  /* Highlight the selected button */
+  document.querySelectorAll("#templateFileList .tpl-btn").forEach(function(b) { b.classList.remove("active"); });
+  var btns = document.getElementById("templateFileList").querySelectorAll(".tpl-btn");
+  for (var i = 0; i < btns.length; i++) {
+    if (btns[i].textContent.trim().startsWith(getTemplateDisplayName(name))) {
+      btns[i].classList.add("active");
+      break;
+    }
+  }
+  
+  api("/api/admin/templates/" + name).then(function(data) {
+    if (data.success) {
+      document.getElementById("templateEditor").value = data.content;
+      document.getElementById("templateStatus").textContent = "已加载 — 注意保留 <!-- SHARE_DATA --> 等标记";
+      document.getElementById("templateEditor").disabled = false;
+      
+      /* Update badge */
+      var badge = document.getElementById("templateStatusBadge");
+      if (data.overridden) {
+        badge.textContent = "已修改";
+        badge.style.background = "rgba(76,175,80,0.2)";
+        badge.style.color = "#81c784";
+      } else {
+        badge.textContent = "原始模板";
+        badge.style.background = "rgba(255,255,255,0.08)";
+        badge.style.color = "rgba(255,255,255,0.4)";
+      }
+    } else {
+      document.getElementById("templateStatus").textContent = "加载失败";
+    }
+  });
+}
+
+function saveTemplate() {
+  if (!currentTemplate) return;
+  var content = document.getElementById("templateEditor").value;
+  document.getElementById("templateStatus").textContent = "保存中…";
+  
+  api("/api/admin/templates/" + currentTemplate, {
+    method: "PUT",
+    body: JSON.stringify({ content: content })
+  }).then(function(data) {
+    if (data.success) {
+      document.getElementById("templateStatus").innerHTML = "✅ " + data.message;
+      loadTemplateList(); /* Refresh badges */
+    } else {
+      document.getElementById("templateStatus").textContent = "❌ " + (data.error || "保存失败");
+    }
+  });
+}
+
+function resetTemplate() {
+  if (!currentTemplate) return;
+  if (!confirm("确认将 " + getTemplateDisplayName(currentTemplate) + " 恢复为默认内容？")) return;
+  
+  document.getElementById("templateStatus").textContent = "重置中…";
+  
+  api("/api/admin/templates/" + currentTemplate + "/reset", {
+    method: "POST"
+  }).then(function(data) {
+    if (data.success) {
+      document.getElementById("templateStatus").textContent = "✅ " + data.message;
+      /* Reload the template with default content */
+      openTemplate(currentTemplate);
+      loadTemplateList();
+    } else {
+      document.getElementById("templateStatus").textContent = "❌ " + (data.error || "重置失败");
+    }
+  });
+}
+
+function restartApp() {
+  if (!confirm("确认重启应用？页面将短暂不可用。")) return;
+  
+  document.getElementById("templateStatus").textContent = "🔄 正在重启…";
+  api("/api/admin/restart", { method: "POST" }).then(function(data) {
+    if (data.success) {
+      document.getElementById("templateStatus").textContent = "✅ " + data.message + " 请稍等片刻后刷新页面";
+    }
+  });
+}
+</script>
+</body>
+</html>
