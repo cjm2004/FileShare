@@ -253,6 +253,11 @@ FileShare/
 
 [MIT](LICENSE)
 
+
+## 十、😊 更新速览
+
+<img width="549" height="876" alt="image" src="https://github.com/user-attachments/assets/8be66edd-590a-4285-ad0e-c19993a6c31d" />
+
 ---
 
 <div align="center">
@@ -262,7 +267,3 @@ FileShare/
 [GitHub](https://github.com/cjm2004/FileShare) · [Issues](https://github.com/cjm2004/FileShare/issues) · [PRs](https://github.com/cjm2004/FileShare/pulls)
 
 </div>
-
-## 十、😊 更新速览
-
-<img width="549" height="876" alt="image" src="https://github.com/user-attachments/assets/8be66edd-590a-4285-ad0e-c19993a6c31d" />
